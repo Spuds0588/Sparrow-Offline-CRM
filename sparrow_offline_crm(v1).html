@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparrow CRM</title>
+    <meta name="description" content="A free, private, offline-first CRM that lives in a single HTML file.">
+
+    <!-- 2. STYLES -->
+    <style>
+        /* --- Color Palette & Theme --- */
+        :root {
+            --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            --font-family-mono: 'ui-monospace', 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono', menlo, consolas, monospace;
+
+            /* Base Colors from sparrow-crm-palette-scss.txt */
+            --midnight-green: #13505b;
+            --cerulean: #0c7489;
+            --persian-orange: #d38b5d;
+            --golden-brown: #99621e;
+            --uranian-blue: #b8e1ff;
+
+            /* Application Theme */
+            --bg-deep: var(--midnight-green);
+            --bg-main: #1A6776; /* Blend of midnight-green and cerulean */
+            --bg-surface: #2a8ea1; /* Lighter blend */
+            --bg-inset: #104854;
+
+            --text-primary: #f0f8ff; /* Alice Blue - a very light blue */
+            --text-secondary: var(--uranian-blue);
+            --text-tertiary: #92c1de;
+            --text-inverse: var(--bg-deep);
+            
+            --accent-primary: var(--persian-orange);
+            --accent-primary-hover: #e6a079;
+            --accent-secondary: var(--golden-brown);
+            
+            --border-color: #3b9eaf;
+            --border-radius: 6px;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-sm: 0 1px 2px var(--shadow-color);
+            --shadow-md: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -2px var(--shadow-color);
+            --shadow-lg: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -4px var(--shadow-color);
+
+            --danger-color: #e53e3e;
+            --success-color: #48bb78;
+        }
+
+        /* --- Reset & Base Styles --- */
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: var(--font-family-sans);
+            background-color: var(--bg-deep);
+            color: var(--text-primary);
+            font-size: 16px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        h1, h2, h3 { margin: 0 0 0.75em 0; line-height: 1.2; color: var(--text-secondary); }
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.2rem; }
+        a { color: var(--accent-primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        input, select, textarea, button { font-family: inherit; font-size: 1rem; color: var(--text-primary); }
+
+        /* --- Utility Classes --- */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* --- Main Layout --- */
+        #app-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: var(--bg-deep);
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo-area { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-area .logo-svg { width: 40px; height: 40px; }
+        .logo-area .logo-svg path { fill: var(--text-secondary); }
+        .logo-area h1 { font-size: 1.75rem; margin: 0; color: var(--text-primary); }
+
+        .search-area { flex-grow: 1; }
+        .search-bar {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.5rem 1rem;
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .search-bar:focus {
+            box-shadow: 0 0 0 3px var(--accent-primary-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .actions-area { display: flex; gap: 0.75rem; }
+
+        main {
+            flex-grow: 1;
+            padding: 1.5rem;
+            background: var(--bg-main);
+        }
+        
+        /* --- Buttons --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background-color: var(--accent-primary);
+            color: var(--text-inverse);
+            border-color: var(--accent-primary);
+        }
+        .btn-primary:hover { background-color: var(--accent-primary-hover); border-color: var(--accent-primary-hover); }
+        
+        .btn-secondary {
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        .btn-secondary:hover { background-color: var(--bg-deep); }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        .btn-danger:hover { background-color: #c53030; }
+
+        /* --- Welcome Screen --- */
+        #welcomeScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            text-align: center;
+        }
+        #welcomeScreen .logo-svg { width: 80px; height: 80px; margin-bottom: 1rem; }
+        #welcomeScreen .logo-svg path { fill: var(--text-secondary); }
+        #welcomeScreen h1 { font-size: 2.5rem; }
+        #welcomeScreen p { font-size: 1.2rem; color: var(--text-tertiary); max-width: 600px; margin-bottom: 2rem; }
+        .drop-zone {
+            border: 3px dashed var(--border-color);
+            border-radius: 1rem;
+            padding: 3rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .drop-zone.dragover {
+            background-color: var(--bg-inset);
+            border-color: var(--accent-primary);
+        }
+
+        /* --- Contact Grid --- */
+        #contactGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .contact-card {
+            background-color: var(--bg-surface);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+        }
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+        .contact-card h3 { color: var(--text-primary); margin-bottom: 0.5rem; }
+        .contact-card-field {
+            font-size: 0.9rem;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .contact-card-field strong { color: var(--text-secondary); }
+        #loadMoreContainer {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        /* --- Modals --- */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: var(--bg-main);
+            margin: auto;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 800px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .modal-body {
+            overflow-y: auto;
+            padding-right: 1rem; /* for scrollbar */
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close-btn:hover { color: var(--text-primary); }
+
+        /* --- Contact Detail Modal Specifics --- */
+        .detail-section { margin-bottom: 2rem; }
+        .detail-section h3 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .detail-field-group {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 0.5rem 1rem;
+            padding: 0.5rem 0;
+            align-items: center;
+            border-radius: 4px;
+        }
+        .detail-field-group:hover { background-color: var(--bg-inset); }
+
+        .detail-field-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: right;
+            padding-right: 1rem;
+        }
+        .detail-field-value {
+            position: relative;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            min-height: 28px;
+        }
+        .detail-field-value:hover .contextual-actions {
+            opacity: 1;
+        }
+        .contextual-actions {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .contextual-actions button {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .contextual-actions button:hover { background: var(--bg-deep); }
+
+        /* --- Inline Editing --- */
+        .inline-edit-input {
+            width: 100%;
+            padding: 0.25rem 0.5rem;
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        .inline-edit-input:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+        }
+
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: var(--bg-inset);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--accent-primary);
+        }
+        .add-new-field-form {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            margin-top: 1rem;
+        }
+        .add-new-field-form .form-group {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+        .relationship-search-results {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            margin-top: 0.5rem;
+        }
+        .relationship-search-result {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .relationship-search-result:hover {
+            background-color: var(--bg-inset);
+        }
+
+        /* --- Settings Modal --- */
+        #fields-list { list-style: none; padding: 0; }
+        #fields-list li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+        }
+        #fields-list li:nth-child(odd) { background-color: var(--bg-inset); }
+        .field-name { flex-grow: 1; }
+        .drag-handle { cursor: grab; }
+
+        /* --- Save Reminder Banner --- */
+        #save-reminder {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--golden-brown);
+            color: var(--text-inverse);
+            padding: 1rem;
+            text-align: center;
+            z-index: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        #save-reminder.visible {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- 3. HTML LAYOUT -->
+    <div id="app-wrapper">
+        <!-- Initial "Welcome/Upload" screen -->
+        <div id="welcomeScreen">
+            <div class="logo-svg">
+                <?xml version="1.0" encoding="utf-8"?>
+                <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="#000000">
+                    <g transform="matrix(1.92623, 0, 0, 1.927014, -60.113792, -58.564831)">
+                        <g data-name="Bird Nest" id="Bird_Nest">
+                        <path d="M64,32A32,32,0,0,0,32,64a31.51,31.51,0,0,0,.61,6.18s0,0,0,0,0,0,0,.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34,1,0,.13.08.25.13.38.15.39.3.78.46,1.16l.08.18a32,32,0,0,0,5.74,9l.06.06c.32.35.64.69,1,1l.1.1c.33.33.66.65,1,1l.09.08a29.29,29.29,0,0,0,2.28,1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34,1,.49l.16.08a32.52,32.52,0,0,0,4.87,1.78l.18,0,1,.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58,0c.51,0,1,0,1.53,0s1,0,1.54,0l.57,0,.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1,1-.25.18,0a31.57,31.57,0,0,0,4.88-1.78l.15-.07,1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88,28.88,0,0,0,2.27-1.87l.12-.11c.33-.3.66-.62,1-.93l.11-.12c.33-.33.64-.66,1-1l.08-.08q.49-.54,1-1.11h0a31.78,31.78,0,0,0,4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13,0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84,0,0,0,0,0-.06h0A32,32,0,0,0,64,32Zm0,2A30,30,0,0,1,94,64a30.58,30.58,0,0,1-.42,5H65V67.55l18.35.7h0A1,1,0,0,0,84,66.49L78.81,62h.8a1,1,0,1,0,0-2H76.48l-3.73-3.2a14.35,14.35,0,0,0-6.22-3.93l-7.28-2.28a5.48,5.48,0,0,0-10.08-.48,1.27,1.27,0,0,0-.27.18l-5,5a1,1,0,0,0-.21,1.09,1,1,0,0,0,.92.62h5.06l3.38,5.33a13,13,0,0,0,9.84,5.14H63V69H34.47A29.51,29.51,0,0,1,34,64,30,30,0,0,1,64,34ZM93.18,71.12c-.18.73-.38,1.45-.61,2.16l-.15.44c-.23.68-.48,1.34-.76,2-.06.15-.14.3-.21.45-.23.53-.48,1-.74,1.55-.09.18-.18.37-.28.56-.3.55-.62,1.08-1,1.61l-.43.67c-.34.51-.69,1-1.06,1.49l-.46.59q-.51.65-1,1.26L86,84.4c-.41.44-.82.86-1.25,1.27l-.4.38c-.51.47-1,.91-1.56,1.34l-.35.27c-.58.45-1.17.89-1.78,1.3l-.08.05c-.67.44-1.35.85-2,1.24h0c-.7.38-1.41.74-2.14,1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66,30.66,0,0,1-4.68,1.23l-.28,0c-.75.12-1.5.22-2.27.29l-.36,0c-.78.06-1.57.1-2.36.1s-1.58,0-2.36-.1l-.36,0c-.76-.07-1.52-.17-2.27-.29l-.28,0A30.53,30.53,0,0,1,54.1,92.3l0,0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08,82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67,53.35s0,.09,0,.14a3.38,3.38,0,0,0,.08.34,6.13,6.13,0,0,0,.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77,3.77,0,0,1,.11.87,3.5,3.5,0,0,1-5.72,2.71L51.66,55a3.4,3.4,0,0,1-1-2.49,3.23,3.23,0,0,1,.19-1.13,3.5,3.5,0,0,1,6.7.26ZM53,57.86l.28.06a5.14,5.14,0,0,0,.88.08,5.91,5.91,0,0,0,1-.1h0a5.18,5.18,0,0,0,1-.28l.07,0a5.92,5.92,0,0,0,.83-.43l.08,0a5.82,5.82,0,0,0,.72-.57l.09-.08a6.39,6.39,0,0,0,.59-.68l.08-.1a6.06,6.06,0,0,0,.45-.78l.06-.12a5.08,5.08,0,0,0,.31-.85l0-.14a5.51,5.51,0,0,0,.14-.92s0,0,0-.07l6.33,2a12.33,12.33,0,0,1,5.38,3.42l.09.09,2,1.72H66.66a6.26,6.26,0,0,1-5.2-2.78l-.26-.4a1,1,0,0,0-1.39-.27,1,1,0,0,0-.27,1.38l.26.4A8.22,8.22,0,0,0,66.66,62h9.08l4.82,4.14L63,65.47a11,11,0,0,1-8.28-4.28l-2.17-3.42C52.66,57.81,52.81,57.83,53,57.86Z"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <h1>Welcome to Sparrow CRM</h1>
+            <p>Your private, portable, and powerful offline CRM. Get started by importing your contacts from a CSV file. All data stays on your machine.</p>
+            <div id="file-drop-zone" class="drop-zone">
+                <button id="import-csv-btn-welcome" class="btn btn-primary">Select or Drop CSV File</button>
+                <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+            </div>
+        </div>
+
+        <!-- Main "App" screen (hidden by default) -->
+        <div id="appScreen" class="hidden">
+            <header>
+                <div class="logo-area">
+                    <div class="logo-svg">
+                        <?xml version="1.0" encoding="utf-8"?>
+                        <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="#000000">
+                            <g transform="matrix(1.92623, 0, 0, 1.927014, -60.113792, -58.564831)">
+                                <g data-name="Bird Nest" id="Bird_Nest">
+                                <path d="M64,32A32,32,0,0,0,32,64a31.51,31.51,0,0,0,.61,6.18s0,0,0,0,0,0,0,.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34,1,0,.13.08.25.13.38.15.39.3.78.46,1.16l.08.18a32,32,0,0,0,5.74,9l.06.06c.32.35.64.69,1,1l.1.1c.33.33.66.65,1,1l.09.08a29.29,29.29,0,0,0,2.28,1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34,1,.49l.16.08a32.52,32.52,0,0,0,4.87,1.78l.18,0,1,.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58,0c.51,0,1,0,1.53,0s1,0,1.54,0l.57,0,.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1,1-.25.18,0a31.57,31.57,0,0,0,4.88-1.78l.15-.07,1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88,28.88,0,0,0,2.27-1.87l.12-.11c.33-.3.66-.62,1-.93l.11-.12c.33-.33.64-.66,1-1l.08-.08q.49-.54,1-1.11h0a31.78,31.78,0,0,0,4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13,0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84,0,0,0,0,0-.06h0A32,32,0,0,0,64,32Zm0,2A30,30,0,0,1,94,64a30.58,30.58,0,0,1-.42,5H65V67.55l18.35.7h0A1,1,0,0,0,84,66.49L78.81,62h.8a1,1,0,1,0,0-2H76.48l-3.73-3.2a14.35,14.35,0,0,0-6.22-3.93l-7.28-2.28a5.48,5.48,0,0,0-10.08-.48,1.27,1.27,0,0,0-.27.18l-5,5a1,1,0,0,0-.21,1.09,1,1,0,0,0,.92.62h5.06l3.38,5.33a13,13,0,0,0,9.84,5.14H63V69H34.47A29.51,29.51,0,0,1,34,64,30,30,0,0,1,64,34ZM93.18,71.12c-.18.73-.38,1.45-.61,2.16l-.15.44c-.23.68-.48,1.34-.76,2-.06.15-.14.3-.21.45-.23.53-.48,1-.74,1.55-.09.18-.18.37-.28.56-.3.55-.62,1.08-1,1.61l-.43.67c-.34.51-.69,1-1.06,1.49l-.46.59q-.51.65-1,1.26L86,84.4c-.41.44-.82.86-1.25,1.27l-.4.38c-.51.47-1,.91-1.56,1.34l-.35.27c-.58.45-1.17.89-1.78,1.3l-.08.05c-.67.44-1.35.85-2,1.24h0c-.7.38-1.41.74-2.14,1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66,30.66,0,0,1-4.68,1.23l-.28,0c-.75.12-1.5.22-2.27.29l-.36,0c-.78.06-1.57.1-2.36.1s-1.58,0-2.36-.1l-.36,0c-.76-.07-1.52-.17-2.27-.29l-.28,0A30.53,30.53,0,0,1,54.1,92.3l0,0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08,82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67,53.35s0,.09,0,.14a3.38,3.38,0,0,0,.08.34,6.13,6.13,0,0,0,.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77,3.77,0,0,1,.11.87,3.5,3.5,0,0,1-5.72,2.71L51.66,55a3.4,3.4,0,0,1-1-2.49,3.23,3.23,0,0,1,.19-1.13,3.5,3.5,0,0,1,6.7.26ZM53,57.86l.28.06a5.14,5.14,0,0,0,.88.08,5.91,5.91,0,0,0,1-.1h0a5.18,5.18,0,0,0,1-.28l.07,0a5.92,5.92,0,0,0,.83-.43l.08,0a5.82,5.82,0,0,0,.72-.57l.09-.08a6.39,6.39,0,0,0,.59-.68l.08-.1a6.06,6.06,0,0,0,.45-.78l.06-.12a5.08,5.08,0,0,0,.31-.85l0-.14a5.51,5.51,0,0,0,.14-.92s0,0,0-.07l6.33,2a12.33,12.33,0,0,1,5.38,3.42l.09.09,2,1.72H66.66a6.26,6.26,0,0,1-5.2-2.78l-.26-.4a1,1,0,0,0-1.39-.27,1,1,0,0,0-.27,1.38l.26.4A8.22,8.22,0,0,0,66.66,62h9.08l4.82,4.14L63,65.47a11,11,0,0,1-8.28-4.28l-2.17-3.42C52.66,57.81,52.81,57.83,53,57.86Z"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <h1>Sparrow CRM</h1>
+                </div>
+                <div class="search-area">
+                    <input type="search" id="main-search-input" class="search-bar" placeholder="Search contacts...">
+                </div>
+                <div class="actions-area">
+                    <button id="import-csv-btn-header" class="btn btn-secondary">Import CSV</button>
+                    <button id="export-csv-btn" class="btn btn-secondary">Export All</button>
+                    <button id="settings-btn" class="btn btn-secondary">Settings</button>
+                </div>
+            </header>
+            <main>
+                <div id="contactGrid"></div>
+                <div id="loadMoreContainer" class="hidden">
+                    <button id="loadMoreBtn" class="btn btn-secondary">Load More</button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal containers (hidden by default) -->
+    <div id="contactDetailModal" class="modal">
+        <div class="modal-content">
+            <!-- Content generated by JS -->
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Manage Fields</h3>
+                <p>Drag to reorder fields. Uncheck to hide from contact cards and detail view.</p>
+                <ul id="fields-list">
+                    <!-- Field list generated by JS -->
+                </ul>
+
+                <h3 style="margin-top: 2rem;">Data Management</h3>
+                 <div class="form-group">
+                    <label for="ghostModeCheckbox">Ghost Mode</label>
+                    <input type="checkbox" id="ghostModeCheckbox">
+                    <p style="font-size: 0.9rem; color: var(--text-tertiary);">If checked, no data will be stored in your browser's local storage between sessions.</p>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">Close</button>
+                <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+             <div class="modal-header">
+                <h2 id="confirm-title">Confirmation</h2>
+             </div>
+             <div class="modal-body">
+                <p id="confirm-message">Are you sure?</p>
+             </div>
+             <div class="modal-footer">
+                <button id="confirm-cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-ok-btn" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Reminder Banner -->
+    <div id="save-reminder">
+        <span>You have unsaved changes.</span>
+        <button id="save-now-btn" class="btn btn-primary">Save Now</button>
+    </div>
+
+    <!--SPARROW_DATA_INJECTION_POINT-->
+    <script id="sparrow-data" type="application/json"></script>
+
+    <!-- 4. JAVASCRIPT LOGIC -->
+    <script>
+    // --- constants
+    const LOG_PREFIX = '[SparrowCRM]';
+    const CONTACTS_PER_PAGE = 50;
+
+    // --- App State ---
+    let AppState = {
+        contacts: [],
+        tasks: [],
+        activities: [],
+        links: [],
+        relationships: [],
+        settings: {
+            fields: [],
+            customActivityTypes: ['Phone Call', 'SMS', 'Email', 'Meeting'],
+            ghostMode: false,
+        },
+        ui: {
+            isFsaSupported: false,
+            fileHandle: null,
+            unsavedChanges: false,
+            currentFilter: '',
+            renderedContactsCount: 0,
+        }
+    };
+
+    // --- DOM Elements ---
+    const DOM = {
+        welcomeScreen: document.getElementById('welcomeScreen'),
+        appScreen: document.getElementById('appScreen'),
+        importCsvWelcomeBtn: document.getElementById('import-csv-btn-welcome'),
+        importCsvHeaderBtn: document.getElementById('import-csv-btn-header'),
+        csvFileInput: document.getElementById('csv-file-input'),
+        fileDropZone: document.getElementById('file-drop-zone'),
+        contactGrid: document.getElementById('contactGrid'),
+        mainSearchInput: document.getElementById('main-search-input'),
+        contactDetailModal: document.getElementById('contactDetailModal'),
+        settingsModal: document.getElementById('settingsModal'),
+        settingsBtn: document.getElementById('settings-btn'),
+        saveSettingsBtn: document.getElementById('save-settings-btn'),
+        fieldsList: document.getElementById('fields-list'),
+        exportCsvBtn: document.getElementById('export-csv-btn'),
+        saveReminder: document.getElementById('save-reminder'),
+        saveNowBtn: document.getElementById('save-now-btn'),
+        loadMoreContainer: document.getElementById('loadMoreContainer'),
+        loadMoreBtn: document.getElementById('loadMoreBtn'),
+        ghostModeCheckbox: document.getElementById('ghostModeCheckbox'),
+        confirmModal: {
+            el: document.getElementById('confirmModal'),
+            title: document.getElementById('confirm-title'),
+            message: document.getElementById('confirm-message'),
+            okBtn: document.getElementById('confirm-ok-btn'),
+            cancelBtn: document.getElementById('confirm-cancel-btn'),
+        },
+    };
+
+    // --- Utility Functions ---
+    const Utils = {
+        generateUUID: () => crypto.randomUUID(),
+        showModal: (modal) => modal.classList.add('visible'),
+        hideModal: (modal) => modal.classList.remove('visible'),
+        debounce: (func, delay) => {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        },
+        showConfirm: (title, message) => {
+            return new Promise((resolve) => {
+                DOM.confirmModal.title.textContent = title;
+                DOM.confirmModal.message.textContent = message;
+                Utils.showModal(DOM.confirmModal.el);
+
+                const okHandler = () => {
+                    cleanup();
+                    resolve(true);
+                };
+                const cancelHandler = () => {
+                    cleanup();
+                    resolve(false);
+                };
+                
+                DOM.confirmModal.okBtn.addEventListener('click', okHandler);
+                DOM.confirmModal.cancelBtn.addEventListener('click', cancelHandler);
+
+                function cleanup() {
+                    Utils.hideModal(DOM.confirmModal.el);
+                    DOM.confirmModal.okBtn.removeEventListener('click', okHandler);
+                    DOM.confirmModal.cancelBtn.removeEventListener('click', cancelHandler);
+                }
+            });
+        },
+        getContactDisplayName(contact) {
+            if (!contact) return "Unknown Contact";
+            const firstName = contact.fields['First Name'] || contact.fields['firstName'] || contact.fields['first_name'] || '';
+            const lastName = contact.fields['Last Name'] || contact.fields['lastName'] || contact.fields['last_name'] || '';
+            const fullName = `${firstName} ${lastName}`.trim();
+            const email = contact.fields['Email'] || contact.fields['email'] || '';
+            return fullName || email || `Contact ${contact.sparrow_contact_id.substring(0, 8)}`;
+        }
+    };
+
+    // --- Core Logic (Data Manipulation) ---
+    const Core = {
+        setUnsavedChanges: (status) => {
+            if (AppState.ui.unsavedChanges === status) return;
+            console.log(`${LOG_PREFIX} Unsaved changes status set to: ${status}`);
+            AppState.ui.unsavedChanges = status;
+            DOM.saveReminder.classList.toggle('visible', status);
+            if (status && !AppState.ui.isFsaSupported) {
+                 DOM.saveReminder.querySelector('span').textContent = "You have unsaved changes. Download a new file to save.";
+                 DOM.saveNowBtn.textContent = "Download Now";
+            } else if (status) {
+                 DOM.saveReminder.querySelector('span').textContent = "You have unsaved changes.";
+                 DOM.saveNowBtn.textContent = "Save Now";
+            }
+        },
+
+        parseCSV: (text) => {
+            console.log(`${LOG_PREFIX} Parsing CSV text.`);
+            const result = [];
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            
+            for(let i = 1; i < lines.length; i++){
+                const line = lines[i];
+                if (!line.trim()) continue;
+                
+                const values = [];
+                let currentVal = '';
+                let inQuotes = false;
+                
+                for (let char of line) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(currentVal.trim());
+                        currentVal = '';
+                    } else {
+                        currentVal += char;
+                    }
+                }
+                values.push(currentVal.trim());
+
+                if (values.length === headers.length) {
+                    const obj = {};
+                    for(let j = 0; j < headers.length; j++){
+                        obj[headers[j]] = values[j].replace(/"/g, '');
+                    }
+                    result.push(obj);
+                } else {
+                    console.warn(`${LOG_PREFIX} Mismatched row length at line ${i+1}. Expected ${headers.length}, got ${values.length}. Skipping.`)
+                }
+            }
+            console.log(`${LOG_PREFIX} Parsed ${result.length} rows from CSV.`);
+            return result;
+        },
+
+        processCSVData: async (data) => {
+            const importTag = prompt("Enter a tag for this import (e.g., 'Leads', 'Salesforce Export'). Leave blank for none.", "");
+
+            const newHeaders = Object.keys(data[0]);
+            
+            // Add new field definitions
+            newHeaders.forEach(header => {
+                if (!AppState.settings.fields.find(f => f.name === header)) {
+                    console.log(`${LOG_PREFIX} New field found: "${header}". Adding to settings.`);
+                    AppState.settings.fields.push({
+                        name: header,
+                        type: 'text',
+                        visible: true,
+                        order: AppState.settings.fields.length
+                    });
+                }
+            });
+
+            // Ensure all existing contacts have the new fields
+            AppState.contacts.forEach(contact => {
+                newHeaders.forEach(header => {
+                    if (!contact.fields.hasOwnProperty(header)) {
+                        contact.fields[header] = '';
+                    }
+                });
+            });
+
+            for (const row of data) {
+                let existingContact = null;
+                // Match by sparrow_contact_id first
+                if (row.sparrow_contact_id) {
+                    existingContact = AppState.contacts.find(c => c.sparrow_contact_id === row.sparrow_contact_id);
+                }
+                // Then try to match by a unique email
+                if (!existingContact && row.Email) {
+                    const potentialMatches = AppState.contacts.filter(c => c.fields.Email && c.fields.Email.toLowerCase() === row.Email.toLowerCase());
+                    if(potentialMatches.length === 1) existingContact = potentialMatches[0];
+                }
+
+                if (existingContact) {
+                    const shouldUpdate = await Utils.showConfirm("Update Contact?", `Found existing contact for '${Utils.getContactDisplayName(existingContact)}'. Do you want to update it with new data from the CSV? Blank values will be ignored.`);
+                    if(shouldUpdate) {
+                        // Smart update: only update non-blank fields
+                        Object.entries(row).forEach(([key, value]) => {
+                            if (value !== null && value !== '') {
+                                existingContact.fields[key] = value;
+                            }
+                        });
+                        if (importTag && !existingContact.tags.includes(importTag)) {
+                            existingContact.tags.push(importTag);
+                        }
+                        console.log(`${LOG_PREFIX} Updated contact: ${existingContact.sparrow_contact_id}`);
+                    }
+                } else {
+                    // Create new contact
+                    const newContact = {
+                        sparrow_contact_id: Utils.generateUUID(),
+                        tags: importTag ? [importTag] : [],
+                        fields: {}
+                    };
+                    // Ensure all defined fields exist on the new contact
+                    AppState.settings.fields.forEach(fieldDef => {
+                        newContact.fields[fieldDef.name] = row[fieldDef.name] || '';
+                    });
+                    AppState.contacts.push(newContact);
+                    console.log(`${LOG_PREFIX} Created new contact: ${newContact.sparrow_contact_id}`);
+                }
+            }
+            Core.setUnsavedChanges(true);
+            UI.renderApp();
+        },
+        
+        saveData: async () => {
+            console.log(`${LOG_PREFIX} Saving data...`);
+            if (AppState.ui.isFsaSupported) {
+                try {
+                    if (!AppState.ui.fileHandle) {
+                        AppState.ui.fileHandle = await window.showSaveFilePicker({
+                            types: [{
+                                description: 'Sparrow CRM File',
+                                accept: {'text/html': ['.html']},
+                            }],
+                        });
+                        console.log(`${LOG_PREFIX} New file handle obtained.`);
+                    }
+                    const writable = await AppState.ui.fileHandle.createWritable();
+                    const fullHtml = Core.generateHtmlToSave();
+                    await writable.write(fullHtml);
+                    await writable.close();
+                    Core.setUnsavedChanges(false);
+                    console.log(`${LOG_PREFIX} Data saved successfully to file handle.`);
+                    alert('Data saved successfully!');
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error(`${LOG_PREFIX} Error saving with File System Access API:`, err);
+                        alert(`Error saving file: ${err.message}`);
+                    } else {
+                        console.log(`${LOG_PREFIX} File save aborted by user.`);
+                    }
+                }
+            } else {
+                // Fallback download method
+                const fullHtml = Core.generateHtmlToSave();
+                const blob = new Blob([fullHtml], {type: 'text/html'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sparrow-crm-data.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                Core.setUnsavedChanges(false);
+                console.log(`${LOG_PREFIX} Data saved via fallback download.`);
+            }
+        },
+
+        generateHtmlToSave: () => {
+            console.log(`${LOG_PREFIX} Generating full HTML for saving.`);
+            const dataToSave = { ...AppState };
+            delete dataToSave.ui; // Don't save transient UI state
+            const jsonString = JSON.stringify(dataToSave, null, 2);
+            
+            const currentDocHtml = document.documentElement.outerHTML;
+            const dataScriptRegex = /<script id="sparrow-data" type="application\/json">.*?<\/script>/s;
+            const replacementScript = `<script id="sparrow-data" type="application/json">${jsonString}<\/script>`;
+            
+            return currentDocHtml.replace(dataScriptRegex, replacementScript);
+        },
+
+        exportToCSV: () => {
+            console.log(`${LOG_PREFIX} Exporting all data to CSV.`);
+            if (AppState.contacts.length === 0) {
+                alert("No contacts to export.");
+                return;
+            }
+
+            const headers = AppState.settings.fields.map(f => f.name);
+            if(!headers.includes('sparrow_contact_id')) headers.unshift('sparrow_contact_id');
+            if(!headers.includes('tags')) headers.push('tags');
+
+            const csvRows = [headers.join(',')];
+
+            AppState.contacts.forEach(contact => {
+                const values = headers.map(header => {
+                    let value;
+                    if (header === 'sparrow_contact_id') {
+                        value = contact.sparrow_contact_id;
+                    } else if (header === 'tags') {
+                        value = contact.tags.join(';');
+                    } else {
+                        value = contact.fields[header] || '';
+                    }
+                    // Escape commas and quotes
+                    const stringValue = String(value);
+                    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+                        return `"${stringValue.replace(/"/g, '""')}"`;
+                    }
+                    return stringValue;
+                });
+                csvRows.push(values.join(','));
+            });
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.setAttribute("href", url);
+            a.setAttribute("download", `sparrow-crm-export-${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            console.log(`${LOG_PREFIX} CSV export initiated.`);
+        },
+        
+        updateContactField: (contactId, fieldName, value) => {
+            const contact = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+            if (contact) {
+                contact.fields[fieldName] = value;
+                console.log(`${LOG_PREFIX} Updated field '${fieldName}' for contact ${contactId}`);
+                Core.setUnsavedChanges(true);
+                // Re-render only the relevant part if needed, for now full render is ok
+                // UI.renderContactGrid(); 
+            }
+        },
+        
+        addCustomField: (contactId, newFieldName, newFieldType) => {
+            if (!newFieldName || AppState.settings.fields.find(f => f.name.toLowerCase() === newFieldName.toLowerCase())) {
+                alert(`Field "${newFieldName}" already exists or name is empty.`);
+                return;
+            }
+
+            console.log(`${LOG_PREFIX} Adding new custom field: '${newFieldName}' of type '${newFieldType}'`);
+
+            // Add to settings
+            AppState.settings.fields.push({
+                name: newFieldName,
+                type: newFieldType,
+                visible: true,
+                order: AppState.settings.fields.length
+            });
+
+            // Add to all existing contacts to maintain data consistency
+            AppState.contacts.forEach(c => {
+                c.fields[newFieldName] = '';
+            });
+
+            Core.setUnsavedChanges(true);
+            UI.renderContactModal(contactId); // Re-render the modal to show the new field
+        },
+        
+        addRelationship: (sourceId, targetId, label) => {
+             if (!targetId || !label) {
+                alert("Please select a contact and provide a relationship label.");
+                return;
+             }
+             const newRelationship = {
+                sparrow_relationship_id: Utils.generateUUID(),
+                source_contact_id: sourceId,
+                target_contact_id: targetId,
+                label: label
+             };
+             AppState.relationships.push(newRelationship);
+             console.log(`${LOG_PREFIX} Added relationship from ${sourceId} to ${targetId} with label '${label}'`);
+             Core.setUnsavedChanges(true);
+             UI.renderContactModal(sourceId);
+        },
+        
+        deleteContact: async (contactId) => {
+            const contact = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+            const confirmed = await Utils.showConfirm("Delete Contact?", `Are you sure you want to permanently delete ${Utils.getContactDisplayName(contact)}? This will also remove all associated relationships, tasks, and activities. This action cannot be undone.`);
+            if (confirmed) {
+                // Delete contact
+                AppState.contacts = AppState.contacts.filter(c => c.sparrow_contact_id !== contactId);
+                // Delete associated data
+                AppState.relationships = AppState.relationships.filter(r => r.source_contact_id !== contactId && r.target_contact_id !== contactId);
+                // TODO: Add deletion for tasks, activities, links when implemented
+                console.log(`${LOG_PREFIX} Deleted contact ${contactId} and associated data.`);
+                Core.setUnsavedChanges(true);
+                Utils.hideModal(DOM.contactDetailModal);
+                UI.renderApp();
+            }
+        }
+    };
+
+    // --- UI Rendering ---
+    const UI = {
+        renderApp: () => {
+            console.log(`${LOG_PREFIX} Rendering main application UI.`);
+            DOM.welcomeScreen.classList.add('hidden');
+            DOM.appScreen.classList.remove('hidden');
+            UI.renderContactGrid();
+        },
+
+        renderContactGrid: (loadMore = false) => {
+            const filterText = DOM.mainSearchInput.value.toLowerCase();
+            if (filterText !== AppState.ui.currentFilter || !loadMore) {
+                AppState.ui.currentFilter = filterText;
+                AppState.ui.renderedContactsCount = 0;
+                DOM.contactGrid.innerHTML = '';
+            }
+            
+            console.log(`${LOG_PREFIX} Rendering contact grid with filter: "${filterText}"`);
+            
+            const filteredContacts = AppState.contacts.filter(contact => {
+                return Object.values(contact.fields).some(val => String(val).toLowerCase().includes(filterText)) ||
+                       contact.tags.some(tag => tag.toLowerCase().includes(filterText));
+            });
+
+            const displayFields = AppState.settings.fields
+                .filter(f => f.visible)
+                .sort((a, b) => a.order - b.order)
+                .slice(0, 5);
+
+            const contactsToRender = filteredContacts.slice(AppState.ui.renderedContactsCount, AppState.ui.renderedContactsCount + CONTACTS_PER_PAGE);
+
+            const fragment = document.createDocumentFragment();
+            contactsToRender.forEach(contact => {
+                const card = document.createElement('div');
+                card.className = 'contact-card';
+                card.dataset.contactId = contact.sparrow_contact_id;
+
+                let cardHTML = `<h3>${Utils.getContactDisplayName(contact)}</h3>`;
+                displayFields.forEach(field => {
+                    if (field.name !== 'First Name' && field.name !== 'Last Name') { // Avoid redundancy
+                        const value = contact.fields[field.name];
+                        if (value) {
+                            cardHTML += `<div class="contact-card-field"><strong>${field.name}:</strong> ${value}</div>`;
+                        }
+                    }
+                });
+                card.innerHTML = cardHTML;
+                fragment.appendChild(card);
+            });
+            DOM.contactGrid.appendChild(fragment);
+
+            AppState.ui.renderedContactsCount += contactsToRender.length;
+            
+            DOM.loadMoreContainer.classList.toggle('hidden', AppState.ui.renderedContactsCount >= filteredContacts.length);
+        },
+
+        renderContactModal: (contactId) => {
+            const contact = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+            if (!contact) {
+                console.error(`${LOG_PREFIX} Could not find contact with ID: ${contactId}`);
+                return;
+            }
+            console.log(`${LOG_PREFIX} Rendering modal for contact: ${contactId}`);
+
+            const sortedFields = AppState.settings.fields.sort((a, b) => a.order - b.order);
+
+            const fieldsHTML = sortedFields.map(fieldDef => {
+                if (!fieldDef.visible) return '';
+                const value = contact.fields[fieldDef.name] || '';
+                
+                let contextualActionsHTML = `<button title="Copy" data-action="copy" data-value="${value}">📋</button>`;
+                if (fieldDef.type === 'email') {
+                    contextualActionsHTML += `<a href="mailto:${value}" title="Email"><button>📧</button></a>`;
+                } else if (fieldDef.type === 'phone') {
+                    contextualActionsHTML += `<a href="tel:${value}" title="Call"><button>📞</button></a>`;
+                }
+
+                return `
+                    <div class="detail-field-group" data-field-name="${fieldDef.name}">
+                        <div class="detail-field-label">${fieldDef.name}</div>
+                        <div class="detail-field-value" data-field-type="${fieldDef.type}">
+                            <span class="value-text">${value}</span>
+                            <div class="contextual-actions">${contextualActionsHTML}</div>
+                        </div>
+                    </div>`;
+            }).join('');
+            
+            // Relationships
+            const relationships = AppState.relationships.filter(r => r.source_contact_id === contactId);
+            const relationshipsHTML = relationships.map(rel => {
+                const targetContact = AppState.contacts.find(c => c.sparrow_contact_id === rel.target_contact_id);
+                return `
+                    <div class="detail-field-group">
+                        <div class="detail-field-label">${rel.label}</div>
+                        <div class="detail-field-value" style="cursor: default;">
+                            <a href="#${rel.target_contact_id}" class="relationship-link" data-contact-id="${rel.target_contact_id}">
+                                ${Utils.getContactDisplayName(targetContact)}
+                            </a>
+                        </div>
+                    </div>`;
+            }).join('');
+            
+            const fieldTypeOptions = ['text', 'longtext', 'number', 'date', 'phone', 'email', 'url', 'boolean', 'relationship'].map(t => `<option value="${t}">${t}</option>`).join('');
+
+            const modalHTML = `
+                <div class="modal-header">
+                    <h2>${Utils.getContactDisplayName(contact)}</h2>
+                    <button class="modal-close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-section">
+                        <h3>Contact Details</h3>
+                        <div id="contact-fields-container">${fieldsHTML}</div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Relationships</h3>
+                        <div id="contact-relationships-container">${relationshipsHTML}</div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Add New Info</h3>
+                        <div id="add-new-field-container">
+                            <div class="add-new-field-form">
+                                <div class="form-group">
+                                    <label for="new-field-name">Field Name / Relationship Label</label>
+                                    <input type="text" id="new-field-name" placeholder="e.g., Birthday or Spouse">
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-field-type">Type</label>
+                                    <select id="new-field-type">${fieldTypeOptions}</select>
+                                </div>
+                                <button id="add-new-field-btn" class="btn btn-secondary">Add</button>
+                            </div>
+                            <div id="relationship-creator-ui" class="hidden" style="margin-top: 1rem;">
+                                <div class="form-group">
+                                    <label for="relationship-search">Find Contact to Link</label>
+                                    <input type="text" id="relationship-search" placeholder="Start typing a name...">
+                                    <div id="relationship-search-results" class="relationship-search-results"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="delete-contact-btn" class="btn btn-danger">Delete Contact</button>
+                    <button class="btn btn-primary modal-close-btn">Close</button>
+                </div>
+            `;
+            DOM.contactDetailModal.querySelector('.modal-content').innerHTML = modalHTML;
+            UI.setupContactModalEventListeners(contactId);
+            Utils.showModal(DOM.contactDetailModal);
+        },
+        
+        renderSettingsModal: () => {
+            console.log(`${LOG_PREFIX} Rendering settings modal.`);
+            DOM.fieldsList.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            AppState.settings.fields
+                .sort((a,b) => a.order - b.order)
+                .forEach(field => {
+                    const li = document.createElement('li');
+                    li.dataset.fieldName = field.name;
+                    li.innerHTML = `
+                        <span class="drag-handle">↕️</span>
+                        <span class="field-name">${field.name}</span>
+                        <select class="field-type-select" data-field-name="${field.name}">
+                            ${['text', 'longtext', 'number', 'date', 'phone', 'email', 'url', 'boolean'].map(t => `<option value="${t}" ${field.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                        </select>
+                        <label>
+                            <input type="checkbox" class="field-visibility-toggle" ${field.visible ? 'checked' : ''}>
+                            Visible
+                        </label>
+                    `;
+                    fragment.appendChild(li);
+                });
+            DOM.fieldsList.appendChild(fragment);
+            DOM.ghostModeCheckbox.checked = AppState.settings.ghostMode;
+            Utils.showModal(DOM.settingsModal);
+        }
+    };
+
+    // --- Event Listeners ---
+    const Events = {
+        init: () => {
+            console.log(`${LOG_PREFIX} Initializing event listeners.`);
+            // File Import
+            const importTrigger = () => DOM.csvFileInput.click();
+            DOM.importCsvWelcomeBtn.addEventListener('click', importTrigger);
+            DOM.importCsvHeaderBtn.addEventListener('click', importTrigger);
+            DOM.csvFileInput.addEventListener('change', Events.handleFileSelect);
+
+            // Drag and Drop
+            DOM.fileDropZone.addEventListener('dragover', Events.handleDragOver);
+            DOM.fileDropZone.addEventListener('dragleave', Events.handleDragLeave);
+            DOM.fileDropZone.addEventListener('drop', Events.handleDrop);
+
+            // Main App Actions
+            DOM.mainSearchInput.addEventListener('input', Utils.debounce(() => UI.renderContactGrid(), 300));
+            DOM.exportCsvBtn.addEventListener('click', Core.exportToCSV);
+            DOM.settingsBtn.addEventListener('click', UI.renderSettingsModal);
+            DOM.saveNowBtn.addEventListener('click', Core.saveData);
+            DOM.loadMoreBtn.addEventListener('click', () => UI.renderContactGrid(true));
+
+            // Generic Modal Close
+            document.body.addEventListener('click', e => {
+                if (e.target.classList.contains('modal-close-btn')) {
+                    const modal = e.target.closest('.modal');
+                    if (modal) Utils.hideModal(modal);
+                }
+            });
+            
+            // Settings Modal Save
+            DOM.saveSettingsBtn.addEventListener('click', Events.handleSaveSettings);
+            
+            // Contact Grid Clicks (Event Delegation)
+            DOM.contactGrid.addEventListener('click', e => {
+                const card = e.target.closest('.contact-card');
+                if (card) {
+                    const contactId = card.dataset.contactId;
+                    window.location.hash = contactId; // For deep linking
+                    UI.renderContactModal(contactId);
+                }
+            });
+            
+            // Handle hash changes for deep linking
+            window.addEventListener('hashchange', () => {
+                const contactId = window.location.hash.substring(1);
+                if (contactId && AppState.contacts.find(c => c.sparrow_contact_id === contactId)) {
+                    UI.renderContactModal(contactId);
+                }
+            });
+
+            // Warn on exit if there are unsaved changes
+            window.addEventListener('beforeunload', e => {
+                if(AppState.ui.unsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+        },
+
+        handleFileSelect: (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                Events.readFile(file);
+            }
+        },
+
+        handleDragOver: (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.add('dragover');
+        },
+
+        handleDragLeave: (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('dragover');
+        },
+
+        handleDrop: (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === "text/csv") {
+                Events.readFile(file);
+            } else {
+                alert("Please drop a valid .csv file.");
+            }
+        },
+
+        readFile: (file) => {
+            console.log(`${LOG_PREFIX} Reading file: ${file.name}`);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = Core.parseCSV(e.target.result);
+                    if (data.length > 0) {
+                        Core.processCSVData(data);
+                    } else {
+                        alert("CSV file is empty or could not be parsed.");
+                    }
+                } catch (error) {
+                    console.error(`${LOG_PREFIX} Error processing file:`, error);
+                    alert(`An error occurred while processing the file: ${error.message}`);
+                }
+            };
+            reader.readAsText(file);
+        },
+        
+        handleSaveSettings: () => {
+            console.log(`${LOG_PREFIX} Saving settings.`);
+            // Field visibility and type
+            const newFields = [];
+            DOM.fieldsList.querySelectorAll('li').forEach((li, index) => {
+                const name = li.dataset.fieldName;
+                const originalField = AppState.settings.fields.find(f => f.name === name);
+                const newType = li.querySelector('.field-type-select').value;
+                const newVisibility = li.querySelector('.field-visibility-toggle').checked;
+                
+                if (originalField) {
+                    newFields.push({
+                        ...originalField,
+                        type: newType,
+                        visible: newVisibility,
+                        order: index
+                    });
+                }
+            });
+            AppState.settings.fields = newFields;
+            
+            // Ghost Mode
+            AppState.settings.ghostMode = DOM.ghostModeCheckbox.checked;
+            if (AppState.settings.ghostMode) {
+                localStorage.removeItem('sparrow-crm-state');
+                console.log(`${LOG_PREFIX} Ghost mode enabled, cleared local storage.`);
+            }
+
+            Core.setUnsavedChanges(true);
+            Utils.hideModal(DOM.settingsModal);
+            UI.renderContactGrid(); // Re-render in case visibility changed
+            alert("Settings saved. Your changes will be permanent when you save the file.");
+        },
+        
+        setupContactModalEventListeners: (contactId) => {
+            const modalContent = DOM.contactDetailModal.querySelector('.modal-content');
+            
+            modalContent.addEventListener('click', Events.handleContactModalClick);
+            modalContent.addEventListener('focusout', Events.handleContactModalFocusOut);
+            modalContent.addEventListener('keydown', Events.handleContactModalKeyDown);
+            modalContent.addEventListener('input', Events.handleContactModalInput);
+        },
+
+        handleContactModalClick: e => {
+            const contactId = window.location.hash.substring(1);
+            
+            // Delete contact
+            if (e.target.id === 'delete-contact-btn') {
+                Core.deleteContact(contactId);
+                return;
+            }
+
+            // Contextual actions
+            const actionBtn = e.target.closest('[data-action="copy"]');
+            if(actionBtn) {
+                navigator.clipboard.writeText(actionBtn.dataset.value).then(() => {
+                    console.log(`${LOG_PREFIX} Copied to clipboard: ${actionBtn.dataset.value}`);
+                    // Maybe show a small "Copied!" tooltip
+                });
+                return;
+            }
+
+            // Relationship link
+            const relationshipLink = e.target.closest('.relationship-link');
+            if (relationshipLink) {
+                e.preventDefault();
+                const targetId = relationshipLink.dataset.contactId;
+                Utils.hideModal(DOM.contactDetailModal);
+                window.location.hash = targetId; // Triggers hashchange event listener
+                return;
+            }
+
+            // Add new field/relationship button
+            if (e.target.id === 'add-new-field-btn') {
+                const nameInput = document.getElementById('new-field-name');
+                const typeSelect = document.getElementById('new-field-type');
+                if (typeSelect.value === 'relationship') {
+                    // This is handled by the relationship creator UI
+                    alert("Please select a contact from the search results to create a relationship.");
+                } else {
+                    Core.addCustomField(contactId, nameInput.value, typeSelect.value);
+                    nameInput.value = '';
+                }
+                return;
+            }
+            
+            // Click on a relationship search result
+            const relSearchResult = e.target.closest('.relationship-search-result');
+            if(relSearchResult) {
+                const targetContactId = relSearchResult.dataset.contactId;
+                const label = document.getElementById('new-field-name').value;
+                Core.addRelationship(contactId, targetContactId, label);
+                return;
+            }
+
+            // Inline editing
+            const valueSpan = e.target.closest('.value-text');
+            if (valueSpan) {
+                const valueContainer = valueSpan.parentElement;
+                if (valueContainer.querySelector('input, select, textarea')) return; // Already in edit mode
+                
+                const fieldGroup = valueContainer.closest('.detail-field-group');
+                const fieldName = fieldGroup.dataset.fieldName;
+                const fieldType = valueContainer.dataset.fieldType;
+                const originalValue = valueSpan.textContent;
+                
+                let inputHtml = `<input type="text" class="inline-edit-input" value="${originalValue}" data-original-value="${originalValue}">`;
+                // Add more input types based on fieldType later if needed
+                
+                valueContainer.innerHTML = inputHtml;
+                valueContainer.querySelector('.inline-edit-input').focus();
+            }
+        },
+        
+        handleContactModalFocusOut: e => {
+             if (e.target.classList.contains('inline-edit-input')) {
+                const input = e.target;
+                const valueContainer = input.parentElement;
+                const fieldGroup = valueContainer.closest('.detail-field-group');
+                const fieldName = fieldGroup.dataset.fieldName;
+                const contactId = window.location.hash.substring(1);
+                
+                Core.updateContactField(contactId, fieldName, input.value);
+                valueContainer.innerHTML = `<span class="value-text">${input.value}</span>` + valueContainer.querySelector('.contextual-actions')?.outerHTML; // put actions back
+                UI.renderContactModal(contactId); // Full re-render to restore all event listeners and state
+            }
+        },
+
+        handleContactModalKeyDown: e => {
+            if (e.target.classList.contains('inline-edit-input')) {
+                const contactId = window.location.hash.substring(1);
+                if (e.key === 'Enter') {
+                    e.target.blur(); // Triggers focusout to save
+                } else if (e.key === 'Escape') {
+                    const input = e.target;
+                    const valueContainer = input.parentElement;
+                    valueContainer.innerHTML = `<span class="value-text">${input.dataset.originalValue}</span>` + valueContainer.querySelector('.contextual-actions')?.outerHTML;
+                    UI.renderContactModal(contactId);
+                }
+            }
+        },
+
+        handleContactModalInput: e => {
+            if (e.target.id === 'new-field-type') {
+                const isRelationship = e.target.value === 'relationship';
+                document.getElementById('relationship-creator-ui').classList.toggle('hidden', !isRelationship);
+            }
+            if (e.target.id === 'relationship-search') {
+                const searchTerm = e.target.value.toLowerCase();
+                const resultsContainer = document.getElementById('relationship-search-results');
+                resultsContainer.innerHTML = '';
+                if (searchTerm.length < 2) return;
+
+                const results = AppState.contacts.filter(c => Utils.getContactDisplayName(c).toLowerCase().includes(searchTerm));
+                results.slice(0, 5).forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'relationship-search-result';
+                    div.dataset.contactId = c.sparrow_contact_id;
+                    div.textContent = Utils.getContactDisplayName(c);
+                    resultsContainer.appendChild(div);
+                });
+            }
+        }
+    };
+    
+    // --- Application Initialization ---
+    function init() {
+        console.log(`${LOG_PREFIX} Initializing application...`);
+
+        // 1. FSA API Check
+        AppState.ui.isFsaSupported = 'showOpenFilePicker' in window;
+        console.log(`${LOG_PREFIX} File System Access API Supported: ${AppState.ui.isFsaSupported}`);
+
+        // 2. Load Data
+        let loadedState = null;
+        const dataScript = document.getElementById('sparrow-data');
+        if (dataScript && dataScript.textContent.trim().length > 2) {
+            try {
+                loadedState = JSON.parse(dataScript.textContent);
+                console.log(`${LOG_PREFIX} Found pre-loaded data in the HTML file.`);
+            } catch (e) {
+                console.error(`${LOG_PREFIX} Failed to parse pre-loaded data. Starting fresh.`, e);
+            }
+        } else if (localStorage.getItem('sparrow-crm-state')) {
+            try {
+                loadedState = JSON.parse(localStorage.getItem('sparrow-crm-state'));
+                console.log(`${LOG_PREFIX} Found data in local storage.`);
+            } catch (e) {
+                console.error(`${LOG_PREFIX} Failed to parse local storage data. Starting fresh.`, e);
+            }
+        }
+
+        if (loadedState) {
+            AppState = { ...AppState, ...loadedState, ui: AppState.ui };
+             // On close, save to local storage if not in ghost mode
+            window.addEventListener('unload', () => {
+                if (!AppState.settings.ghostMode) {
+                    try {
+                        const stateToStore = { ...AppState };
+                        delete stateToStore.ui;
+                        localStorage.setItem('sparrow-crm-state', JSON.stringify(stateToStore));
+                        console.log(`${LOG_PREFIX} State saved to local storage on exit.`);
+                    } catch (e) {
+                        console.error(`${LOG_PREFIX} Could not save state to local storage`, e);
+                    }
+                } else {
+                    localStorage.removeItem('sparrow-crm-state');
+                }
+            });
+        }
+        
+        // 3. Setup Event Listeners
+        Events.init();
+
+        // 4. Initial Render
+        if (AppState.contacts.length > 0) {
+            UI.renderApp();
+        } else {
+            DOM.welcomeScreen.classList.remove('hidden');
+            DOM.appScreen.classList.add('hidden');
+        }
+        
+        // 5. URL Parameter Handling
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.has('q')) {
+            DOM.mainSearchInput.value = searchParams.get('q');
+            UI.renderContactGrid();
+        }
+        
+        const hash = window.location.hash.substring(1);
+        if (hash && AppState.contacts.find(c => c.sparrow_contact_id === hash)) {
+            UI.renderContactModal(hash);
+        }
+    }
+
+    // --- Let's Go! ---
+    document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
