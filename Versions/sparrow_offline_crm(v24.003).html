@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparrow CRM</title>
+    <meta name="description" content="A free, private, offline-first CRM that lives in a single HTML file.">
+    <!-- Favicon will be dynamically injected by script -->
+
+    <!-- STYLES -->
+    <style>
+        :root {
+            --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            --midnight-green: #13505b; --cerulean: #0c7489; --persian-orange: #d38b5d; --golden-brown: #99621e; --uranian-blue: #b8e1ff;
+            --bg-deep: var(--midnight-green); --bg-main: #1A6776; --bg-surface: #2a8ea1; --bg-inset: #104854;
+            --text-primary: #f0f8ff; --text-secondary: var(--uranian-blue); --text-tertiary: #92c1de;
+            --accent-primary: var(--persian-orange); --accent-primary-hover: #e6a079;
+            --border-color: #3b9eaf; --border-radius: 6px;
+            --shadow-color: rgba(0, 0, 0, 0.3); --shadow-md: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -2px var(--shadow-color);
+            --danger-color: #e53e3e; --danger-hover: #c53030; --success-color: #48bb78;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; font-family: var(--font-family-sans); background-color: var(--bg-deep); color: var(--text-primary); font-size: 16px; line-height: 1.6; }
+        h1, h2, h3 { margin: 0 0 0.75em 0; line-height: 1.2; color: var(--text-secondary); }
+        a { color: var(--accent-primary); text-decoration: none; } a:hover { text-decoration: underline; }
+        input, select, textarea, button { font-family: inherit; font-size: 1rem; color: var(--text-primary); }
+        .hidden { display: none !important; }
+        #app-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+        header { background-color: var(--bg-deep); padding: 1rem 1.5rem; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; flex-wrap: wrap; gap: 1.5rem; box-shadow: var(--shadow-md); position: sticky; top: 0; z-index: 100; }
+        .logo-area { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-area svg { width: 40px; height: 40px; }
+        .logo-area h1 { font-size: 1.75rem; margin: 0; color: var(--text-primary); }
+        .search-area { flex-grow: 1; }
+        .search-bar { width: 100%; max-width: 400px; padding: 0.5rem 1rem; background-color: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--border-radius); outline: none; transition: all 0.2s ease; }
+        .search-bar:focus { box-shadow: 0 0 0 3px var(--accent-primary-hover); border-color: var(--accent-primary); }
+        .actions-area { display: flex; gap: 0.75rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border: 1px solid transparent; border-radius: var(--border-radius); font-weight: 600; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+        .btn:disabled { background-color: #555 !important; border-color: #666 !important; color: #999 !important; cursor: not-allowed !important; opacity: 0.7; }
+        .btn-primary { background-color: var(--accent-primary); color: var(--text-primary); border-color: var(--accent-primary); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--accent-primary-hover); border-color: var(--accent-primary-hover); }
+        .btn-secondary { background-color: var(--bg-surface); color: var(--text-primary); border-color: var(--border-color); }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--bg-deep); }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-danger:hover:not(:disabled) { background-color: var(--danger-hover); }
+        #welcomeScreen { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; text-align: center; }
+        #welcomeScreen h1 { font-size: 2.5rem; } #welcomeScreen p { font-size: 1.2rem; color: var(--text-tertiary); max-width: 600px; margin-bottom: 2rem; }
+        .drop-zone { border: 3px dashed var(--border-color); border-radius: 1rem; padding: 3rem; cursor: pointer; transition: all 0.2s ease; }
+        .drop-zone.dragover { background-color: var(--bg-inset); border-color: var(--accent-primary); }
+        #contactGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; padding: 1.5rem; }
+        .contact-card { position: relative; background-color: var(--bg-surface); border-radius: var(--border-radius); padding: 1.25rem; box-shadow: var(--shadow-md); cursor: pointer; transition: all 0.2s ease-in-out; border: 1px solid transparent; display: flex; flex-direction: column; }
+        .contact-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--accent-primary); }
+        .contact-card h3 { color: var(--text-primary); margin-bottom: 0.75rem; font-size: 1.25rem; flex-shrink: 0; padding-right: 50px; }
+        .contact-card-fields { flex-grow: 1; }
+        .contact-card-field { font-size: 0.9rem; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.25rem; }
+        .contact-card-field strong { color: var(--text-secondary); }
+        .contact-card-tags { position: absolute; top: 1rem; right: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: flex-end; max-width: 50%; }
+        .tag-badge { background-color: var(--bg-inset); color: var(--text-tertiary); padding: 0.1rem 0.5rem; font-size: 0.75rem; border-radius: 10px; white-space: nowrap; }
+        #loadMoreContainer { margin: 1.5rem; text-align: center; }
+        
+        /* Modal System */
+        .modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
+        .modal.visible { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--bg-main); margin: auto; padding: 2rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 90vw; max-width: 1400px; box-shadow: var(--shadow-md); position: relative; display: flex; flex-direction: column; }
+        #contactDetailModal .modal-content { height: 90vh; }
+        #settingsModal .modal-content, #newContactModal .modal-content, #confirmModal .modal-content { max-width: 800px; height: auto; max-height: 90vh; }
+        .secondary-modal { z-index: 1010; } /* Ensure secondary modals are on top */
+        .secondary-modal .modal-content { height: auto; width: 90%; max-width: 500px; }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; flex-shrink: 0; }
+        .modal-header .actions-area { margin-left: auto; padding-left: 2rem; }
+        .modal-body { overflow-y: auto; flex-grow: 1; padding-right: 1rem; -ms-overflow-style: none; scrollbar-width: none; }
+        .modal-body::-webkit-scrollbar { display: none; }
+        #contactDetailModal .modal-body { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+        .modal-footer { border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem; flex-shrink: 0; }
+        .modal-close-btn { background: none; border: none; font-size: 2rem; color: var(--text-tertiary); cursor: pointer; line-height: 1; }
+        .modal-close-btn:hover { color: var(--text-primary); }
+        .detail-section { margin-bottom: 2rem; }
+        .detail-section h3 { border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        #contact-fields-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 0 2rem; }
+        .detail-field-group { display: grid; grid-template-columns: 150px 1fr; gap: 0.5rem 1rem; padding: 0.5rem 0; align-items: center; border-radius: 4px; border-bottom: 1px solid var(--bg-inset); cursor: pointer; }
+        .detail-field-label { font-weight: 600; color: var(--text-secondary); text-align: right; padding-right: 1rem; white-space: normal; word-break: break-word; pointer-events: none; }
+        .detail-field-value { position: relative; padding: 0.25rem 0.5rem; border-radius: 4px; min-height: 28px; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; pointer-events: none; }
+        .detail-field-group:hover { background-color: var(--bg-inset); }
+        .detail-field-group:hover .contextual-actions { opacity: 1; }
+        .value-text { flex-grow: 1; }
+        .contextual-actions { flex-shrink: 0; display: flex; gap: 0.5rem; opacity: 0; transition: opacity 0.2s ease; pointer-events: all; }
+        .contextual-actions button, .contextual-actions a button { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+        .contextual-actions button:hover, .contextual-actions a button:hover { background: var(--bg-deep); }
+        .inline-edit-input { width: 100%; padding: 0.25rem 0.5rem; background-color: var(--bg-inset); border: 1px solid var(--border-color); border-radius: 4px; pointer-events: all; }
+        .inline-edit-input:focus { border-color: var(--accent-primary); outline: none; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.25rem; color: var(--text-secondary); font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5rem; background-color: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--border-radius); outline: none; }
+        .form-group input[type="checkbox"] { width: auto; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-primary); }
+        
+        /* Settings Modal */
+        #fields-list { list-style: none; padding: 0; }
+        #fields-list li { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border-radius: var(--border-radius); }
+        #fields-list li:nth-child(odd) { background-color: var(--bg-inset); }
+        .field-name { flex-grow: 1; margin-left: 0.5rem; }
+        .field-order-btn, .field-delete-btn { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-tertiary); font-size: 1.2rem; line-height: 1;}
+        .field-order-btn:disabled { cursor: not-allowed; opacity: 0.3; }
+        .field-order-btn:hover:not(:disabled), .field-delete-btn:hover { color: var(--text-primary); background-color: var(--bg-surface); border-radius: 4px; }
+        #fields-list .field-type-select { background-color: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 0.25rem 0.5rem; color: var(--text-primary); }
+        .ghost-mode-group { display: flex; align-items: center; gap: 0.5rem; }
+        #delete-all-container, .danger-zone-section { margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--danger-hover); }
+
+        /* Save Reminder */
+        #save-reminder { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--golden-brown); color: var(--text-primary); padding: 1rem; text-align: center; z-index: 500; display: flex; justify-content: center; align-items: center; gap: 1rem; transform: translateY(100%); transition: transform 0.3s ease-in-out; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        #save-reminder.visible { transform: translateY(0); }
+
+        /* Notifications */
+        #notification-container { position: fixed; top: 85px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .notification { padding: 15px 20px; border-radius: var(--border-radius); box-shadow: var(--shadow-md); color: var(--text-primary); opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .notification.visible { opacity: 1; transform: translateX(0); }
+        .notification.info { background-color: var(--bg-surface); }
+        .notification.success { background-color: var(--success-color); }
+        .notification.danger { background-color: var(--danger-color); }
+        
+        /* Item Lists (Tasks, Activities) */
+        .item-list { list-style: none; padding: 0; margin: 0; }
+        .item-list li { display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem; border-radius: var(--border-radius); }
+        .item-list li:nth-child(odd) { background-color: var(--bg-inset); }
+        .item-list .item-title { flex-grow: 1; }
+        .item-list .item-date { color: var(--text-tertiary); font-size: 0.9rem; cursor: pointer; }
+        .item-list .item-actions button { background: none; border: none; cursor: pointer; padding: 4px; font-size: 1.2rem; color: var(--text-tertiary); }
+        .item-list .item-actions button:hover { color: var(--text-primary); }
+        .add-item-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+        .add-item-form .form-group { margin: 0; flex-grow: 1;}
+        .relationship-search-results { max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-top: 0.5rem; background: var(--bg-inset); }
+        .relationship-search-result { padding: 0.5rem; cursor: pointer; }
+        .relationship-search-result:hover, .relationship-search-result.selected { background-color: var(--bg-surface); }
+
+        /* Task Screen */
+        #taskScreen main { padding: 1.5rem; }
+        #taskScreen h1 { padding: 1rem 1.5rem; margin: 0; }
+        #taskScreen header { display: flex; justify-content: space-between; align-items: center; }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; background-color: var(--bg-surface); min-width: 160px; box-shadow: var(--shadow-md); z-index: 1; border-radius: var(--border-radius); border: 1px solid var(--border-color); right:0; }
+        .dropdown-content button { width: 100%; text-align: left; background: none; border: none; padding: 12px 16px; color: var(--text-primary); }
+        .dropdown-content button:hover { background-color: var(--bg-deep); }
+        .dropdown:hover .dropdown-content { display: block; }
+    </style>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20128%20128%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23f0f8ff%22%3E%3Cg%20id%3D%22SVGRepo_iconCarrier%22%20style%3D%22%22%20transform%3D%22matrix(1.92623%2C%200%2C%200%2C%201.927014%2C%20-60.113792%2C%20-58.564831)%22%3E%3Cg%20data-name%3D%22Bird%20Nest%22%20id%3D%22Bird_Nest%22%3E%3Cpath%20class%3D%22cls-1%22%20d%3D%22M64%2C32A32%2C32%2C0%2C0%2C0%2C32%2C64a31.51%2C31.51%2C0%2C0%2C0%2C.61%2C6.18s0%2C0%2C0%2C0%2C0%2C0%2C0%2C.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34%2C1%2C0%2C.13.08.25.13.38.15.39.3.78.46%2C1.16l.08.18a32%2C32%2C0%2C0%2C0%2C5.74%2C9l.06.06c.32.35.64.69%2C1%2C1l.1.1c.33.33.66.65%2C1%2C1l.09.08a29.29%2C29.29%2C0%2C0%2C0%2C2.28%2C1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34%2C1%2C.49l.16.08a32.52%2C32.52%2C0%2C0%2C0%2C4.87%2C1.78l.18%2C0%2C1%2C.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58%2C0c.51%2C0%2C1%2C0%2C1.53%2C0s1%2C0%2C1.54%2C0l.57%2C0%2C.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1%2C1-.25.18%2C0a31.57%2C31.57%2C0%2C0%2C0%2C4.88-1.78l.15-.07%2C1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88%2C28.88%2C0%2C0%2C0%2C2.27-1.87l.12-.11c.33-.3.66-.62%2C1-.93l.11-.12c.33-.33.64-.66%2C1-1l.08-.08q.49-.54%2C1-1.11h0a31.78%2C31.78%2C0%2C0%2C0%2C4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13%2C0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84%2C0%2C0%2C0%2C0%2C0-.06h0A32%2C32%2C0%2C0%2C0%2C64%2C32Zm0%2C2A30%2C30%2C0%2C0%2C1%2C94%2C64a30.58%2C30.58%2C0%2C0%2C1-.42%2C5H65V67.55l18.35.7h0A1%2C1%2C0%2C0%2C0%2C84%2C66.49L78.81%2C62h.8a1%2C1%2C0%2C1%2C0%2C0-2H76.48l-3.73-3.2a14.35%2C14.35%2C0%2C0%2C0-6.22-3.93l-7.28-2.28a5.48%2C5.48%2C0%2C0%2C0-10.08-.48%2C1.27%2C1.27%2C0%2C0%2C0-.27.18l-5%2C5a1%2C1%2C0%2C0%2C0-.21%2C1.09%2C1%2C1%2C0%2C0%2C0%2C.92.62h5.06l3.38%2C5.33a13%2C13%2C0%2C0%2C0%2C9.84%2C5.14H63V69H34.47A29.51%2C29.51%2C0%2C0%2C1%2C34%2C64%2C30%2C30%2C0%2C0%2C1%2C64%2C34ZM93.18%2C71.12c-.18.73-.38%2C1.45-.61%2C2.16l-.15.44c-.23.68-.48%2C1.34-.76%2C2-.06.15-.14.3-.21.45-.23.53-.48%2C1-.74%2C1.55-.09.18-.18.37-.28.56-.3.55-.62%2C1.08-1%2C1.61l-.43.67c-.34.51-.69%2C1-1.06%2C1.49l-.46.59q-.51.65-1%2C1.26L86%2C84.4c-.41.44-.82.86-1.25%2C1.27l-.4.38c-.51.47-1%2C.91-1.56%2C1.34l-.35.27c-.58.45-1.17.89-1.78%2C1.3l-.08.05c-.67.44-1.35.85-2%2C1.24h0c-.7.38-1.41.74-2.14%2C1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66%2C30.66%2C0%2C0%2C1-4.68%2C1.23l-.28%2C0c-.75.12-1.5.22-2.27.29l-.36%2C0c-.78.06-1.57.1-2.36.1s-1.58%2C0-2.36-.1l-.36%2C0c-.76-.07-1.52-.17-2.27-.29l-.28%2C0A30.53%2C30.53%2C0%2C0%2C1%2C54.1%2C92.3l0%2C0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08%2C82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67%2C53.35s0%2C.09%2C0%2C.14a3.38%2C3.38%2C0%2C0%2C0%2C.08.34%2C6.13%2C6.13%2C0%2C0%2C0%2C.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77%2C3.77%2C0%2C0%2C1%2C.11.87%2C3.5%2C3.5%2C0%2C0%2C1-5.72%2C2.71L51.66%2C55a3.4%2C3.4%2C0%2C0%2C1-1-2.49%2C3.23%2C3.23%2C0%2C0%2C1%2C.19-1.13%2C3.5%2C3.5%2C0%2C0%2C1%2C6.7.26ZM53%2C57.86l.28.06a5.14%2C5.14%2C0%2C0%2C0%2C.88.08%2C5.91%2C5.91%2C0%2C0%2C0%2C1-.1h0a5.18%2C5.18%2C0%2C0%2C0%2C1-.28l.07%2C0a5.92%2C5.92%2C0%2C0%2C0%2C.83-.43l.08%2C0a5.82%2C5.82%2C0%2C0%2C0%2C.72-.57l.09-.08a6.39%2C6.39%2C0%2C0%2C0%2C.59-.68l.08-.1a6.06%2C6.06%2C0%2C0%2C0%2C.45-.78l.06-.12a5.08%2C5.08%2C0%2C0%2C0%2C.31-.85l0-.14a5.51%2C5.51%2C0%2C0%2C0%2C.14-.92s0%2C0%2C0-.07l6.33%2C2a12.33%2C12.33%2C0%2C0%2C1%2C5.38%2C3.42l.09.09%2C2%2C1.72H66.66a6.26%2C6.26%2C0%2C0%2C1-5.2-2.78l-.26-.4a1%2C1%2C0%2C0%2C0-1.39-.27%2C1%2C1%2C0%2C0%2C0-.27%2C1.38l.26.4A8.22%2C8.22%2C0%2C0%2C0%2C66.66%2C62h9.08l4.82%2C4.14L63%2C65.47a11%2C11%2C0%2C0%2C1-8.28-4.28l-2.17-3.42C52.66%2C57.81%2C52.81%2C57.83%2C53%2C57.86Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20128%20128%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23f0f8ff%22%3E%3Cg%20id%3D%22SVGRepo_iconCarrier%22%20style%3D%22%22%20transform%3D%22matrix(1.92623%2C%200%2C%200%2C%201.927014%2C%20-60.113792%2C%20-58.564831)%22%3E%3Cg%20data-name%3D%22Bird%20Nest%22%20id%3D%22Bird_Nest%22%3E%3Cpath%20class%3D%22cls-1%22%20d%3D%22M64%2C32A32%2C32%2C0%2C0%2C0%2C32%2C64a31.51%2C31.51%2C0%2C0%2C0%2C.61%2C6.18s0%2C0%2C0%2C0%2C0%2C0%2C0%2C.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34%2C1%2C0%2C.13.08.25.13.38.15.39.3.78.46%2C1.16l.08.18a32%2C32%2C0%2C0%2C0%2C5.74%2C9l.06.06c.32.35.64.69%2C1%2C1l.1.1c.33.33.66.65%2C1%2C1l.09.08a29.29%2C29.29%2C0%2C0%2C0%2C2.28%2C1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34%2C1%2C.49l.16.08a32.52%2C32.52%2C0%2C0%2C0%2C4.87%2C1.78l.18%2C0%2C1%2C.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58%2C0c.51%2C0%2C1%2C0%2C1.53%2C0s1%2C0%2C1.54%2C0l.57%2C0%2C.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1%2C1-.25.18%2C0a31.57%2C31.57%2C0%2C0%2C0%2C4.88-1.78l.15-.07%2C1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88%2C28.88%2C0%2C0%2C0%2C2.27-1.87l.12-.11c.33-.3.66-.62%2C1-.93l.11-.12c.33-.33.64-.66%2C1-1l.08-.08q.49-.54%2C1-1.11h0a31.78%2C31.78%2C0%2C0%2C0%2C4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13%2C0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84%2C0%2C0%2C0%2C0%2C0-.06h0A32%2C32%2C0%2C0%2C0%2C64%2C32Zm0%2C2A30%2C30%2C0%2C0%2C1%2C94%2C64a30.58%2C30.58%2C0%2C0%2C1-.42%2C5H65V67.55l18.35.7h0A1%2C1%2C0%2C0%2C0%2C84%2C66.49L78.81%2C62h.8a1%2C1%2C0%2C1%2C0%2C0-2H76.48l-3.73-3.2a14.35%2C14.35%2C0%2C0%2C0-6.22-3.93l-7.28-2.28a5.48%2C5.48%2C0%2C0%2C0-10.08-.48%2C1.27%2C1.27%2C0%2C0%2C0-.27.18l-5%2C5a1%2C1%2C0%2C0%2C0-.21%2C1.09%2C1%2C1%2C0%2C0%2C0%2C.92.62h5.06l3.38%2C5.33a13%2C13%2C0%2C0%2C0%2C9.84%2C5.14H63V69H34.47A29.51%2C29.51%2C0%2C0%2C1%2C34%2C64%2C30%2C30%2C0%2C0%2C1%2C64%2C34ZM93.18%2C71.12c-.18.73-.38%2C1.45-.61%2C2.16l-.15.44c-.23.68-.48%2C1.34-.76%2C2-.06.15-.14.3-.21.45-.23.53-.48%2C1-.74%2C1.55-.09.18-.18.37-.28.56-.3.55-.62%2C1.08-1%2C1.61l-.43.67c-.34.51-.69%2C1-1.06%2C1.49l-.46.59q-.51.65-1%2C1.26L86%2C84.4c-.41.44-.82.86-1.25%2C1.27l-.4.38c-.51.47-1%2C.91-1.56%2C1.34l-.35.27c-.58.45-1.17.89-1.78%2C1.3l-.08.05c-.67.44-1.35.85-2%2C1.24h0c-.7.38-1.41.74-2.14%2C1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66%2C30.66%2C0%2C0%2C1-4.68%2C1.23l-.28%2C0c-.75.12-1.5.22-2.27.29l-.36%2C0c-.78.06-1.57.1-2.36.1s-1.58%2C0-2.36-.1l-.36%2C0c-.76-.07-1.52-.17-2.27-.29l-.28%2C0A30.53%2C30.53%2C0%2C0%2C1%2C54.1%2C92.3l0%2C0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08%2C82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67%2C53.35s0%2C.09%2C0%2C.14a3.38%2C3.38%2C0%2C0%2C0%2C.08.34%2C6.13%2C6.13%2C0%2C0%2C0%2C.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77%2C3.77%2C0%2C0%2C1%2C.11.87%2C3.5%2C3.5%2C0%2C0%2C1-5.72%2C2.71L51.66%2C55a3.4%2C3.4%2C0%2C0%2C1-1-2.49%2C3.23%2C3.23%2C0%2C0%2C1%2C.19-1.13%2C3.5%2C3.5%2C0%2C0%2C1%2C6.7.26ZM53%2C57.86l.28.06a5.14%2C5.14%2C0%2C0%2C0%2C.88.08%2C5.91%2C5.91%2C0%2C0%2C0%2C1-.1h0a5.18%2C5.18%2C0%2C0%2C0%2C1-.28l.07%2C0a5.92%2C5.92%2C0%2C0%2C0%2C.83-.43l.08%2C0a5.82%2C5.82%2C0%2C0%2C0%2C.72-.57l.09-.08a6.39%2C6.39%2C0%2C0%2C0%2C.59-.68l.08-.1a6.06%2C6.06%2C0%2C0%2C0%2C.45-.78l.06-.12a5.08%2C5.08%2C0%2C0%2C0%2C.31-.85l0-.14a5.51%2C5.51%2C0%2C0%2C0%2C.14-.92s0%2C0%2C0-.07l6.33%2C2a12.33%2C12.33%2C0%2C0%2C1%2C5.38%2C3.42l.09.09%2C2%2C1.72H66.66a6.26%2C6.26%2C0%2C0%2C1-5.2-2.78l-.26-.4a1%2C1%2C0%2C0%2C0-1.39-.27%2C1%2C1%2C0%2C0%2C0-.27%2C1.38l.26.4A8.22%2C8.22%2C0%2C0%2C0%2C66.66%2C62h9.08l4.82%2C4.14L63%2C65.47a11%2C11%2C0%2C0%2C1-8.28-4.28l-2.17-3.42C52.66%2C57.81%2C52.81%2C57.83%2C53%2C57.86Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20128%20128%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23f0f8ff%22%3E%3Cg%20id%3D%22SVGRepo_iconCarrier%22%20style%3D%22%22%20transform%3D%22matrix(1.92623%2C%200%2C%200%2C%201.927014%2C%20-60.113792%2C%20-58.564831)%22%3E%3Cg%20data-name%3D%22Bird%20Nest%22%20id%3D%22Bird_Nest%22%3E%3Cpath%20class%3D%22cls-1%22%20d%3D%22M64%2C32A32%2C32%2C0%2C0%2C0%2C32%2C64a31.51%2C31.51%2C0%2C0%2C0%2C.61%2C6.18s0%2C0%2C0%2C0%2C0%2C0%2C0%2C.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34%2C1%2C0%2C.13.08.25.13.38.15.39.3.78.46%2C1.16l.08.18a32%2C32%2C0%2C0%2C0%2C5.74%2C9l.06.06c.32.35.64.69%2C1%2C1l.1.1c.33.33.66.65%2C1%2C1l.09.08a29.29%2C29.29%2C0%2C0%2C0%2C2.28%2C1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34%2C1%2C.49l.16.08a32.52%2C32.52%2C0%2C0%2C0%2C4.87%2C1.78l.18%2C0%2C1%2C.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58%2C0c.51%2C0%2C1%2C0%2C1.53%2C0s1%2C0%2C1.54%2C0l.57%2C0%2C.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1%2C1-.25.18%2C0a31.57%2C31.57%2C0%2C0%2C0%2C4.88-1.78l.15-.07%2C1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88%2C28.88%2C0%2C0%2C0%2C2.27-1.87l.12-.11c.33-.3.66-.62%2C1-.93l.11-.12c.33-.33.64-.66%2C1-1l.08-.08q.49-.54%2C1-1.11h0a31.78%2C31.78%2C0%2C0%2C0%2C4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13%2C0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84%2C0%2C0%2C0%2C0%2C0-.06h0A32%2C32%2C0%2C0%2C0%2C64%2C32Zm0%2C2A30%2C30%2C0%2C0%2C1%2C94%2C64a30.58%2C30.58%2C0%2C0%2C1-.42%2C5H65V67.55l18.35.7h0A1%2C1%2C0%2C0%2C0%2C84%2C66.49L78.81%2C62h.8a1%2C1%2C0%2C1%2C0%2C0-2H76.48l-3.73-3.2a14.35%2C14.35%2C0%2C0%2C0-6.22-3.93l-7.28-2.28a5.48%2C5.48%2C0%2C0%2C0-10.08-.48%2C1.27%2C1.27%2C0%2C0%2C0-.27.18l-5%2C5a1%2C1%2C0%2C0%2C0-.21%2C1.09%2C1%2C1%2C0%2C0%2C0%2C.92.62h5.06l3.38%2C5.33a13%2C13%2C0%2C0%2C0%2C9.84%2C5.14H63V69H34.47A29.51%2C29.51%2C0%2C0%2C1%2C34%2C64%2C30%2C30%2C0%2C0%2C1%2C64%2C34ZM93.18%2C71.12c-.18.73-.38%2C1.45-.61%2C2.16l-.15.44c-.23.68-.48%2C1.34-.76%2C2-.06.15-.14.3-.21.45-.23.53-.48%2C1-.74%2C1.55-.09.18-.18.37-.28.56-.3.55-.62%2C1.08-1%2C1.61l-.43.67c-.34.51-.69%2C1-1.06%2C1.49l-.46.59q-.51.65-1%2C1.26L86%2C84.4c-.41.44-.82.86-1.25%2C1.27l-.4.38c-.51.47-1%2C.91-1.56%2C1.34l-.35.27c-.58.45-1.17.89-1.78%2C1.3l-.08.05c-.67.44-1.35.85-2%2C1.24h0c-.7.38-1.41.74-2.14%2C1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66%2C30.66%2C0%2C0%2C1-4.68%2C1.23l-.28%2C0c-.75.12-1.5.22-2.27.29l-.36%2C0c-.78.06-1.57.1-2.36.1s-1.58%2C0-2.36-.1l-.36%2C0c-.76-.07-1.52-.17-2.27-.29l-.28%2C0A30.53%2C30.53%2C0%2C0%2C1%2C54.1%2C92.3l0%2C0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08%2C82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67%2C53.35s0%2C.09%2C0%2C.14a3.38%2C3.38%2C0%2C0%2C0%2C.08.34%2C6.13%2C6.13%2C0%2C0%2C0%2C.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77%2C3.77%2C0%2C0%2C1%2C.11.87%2C3.5%2C3.5%2C0%2C0%2C1-5.72%2C2.71L51.66%2C55a3.4%2C3.4%2C0%2C0%2C1-1-2.49%2C3.23%2C3.23%2C0%2C0%2C1%2C.19-1.13%2C3.5%2C3.5%2C0%2C0%2C1%2C6.7.26ZM53%2C57.86l.28.06a5.14%2C5.14%2C0%2C0%2C0%2C.88.08%2C5.91%2C5.91%2C0%2C0%2C0%2C1-.1h0a5.18%2C5.18%2C0%2C0%2C0%2C1-.28l.07%2C0a5.92%2C5.92%2C0%2C0%2C0%2C.83-.43l.08%2C0a5.82%2C5.82%2C0%2C0%2C0%2C.72-.57l.09-.08a6.39%2C6.39%2C0%2C0%2C0%2C.59-.68l.08-.1a6.06%2C6.06%2C0%2C0%2C0%2C.45-.78l.06-.12a5.08%2C5.08%2C0%2C0%2C0%2C.31-.85l0-.14a5.51%2C5.51%2C0%2C0%2C0%2C.14-.92s0%2C0%2C0-.07l6.33%2C2a12.33%2C12.33%2C0%2C0%2C1%2C5.38%2C3.42l.09.09%2C2%2C1.72H66.66a6.26%2C6.26%2C0%2C0%2C1-5.2-2.78l-.26-.4a1%2C1%2C0%2C0%2C0-1.39-.27%2C1%2C1%2C0%2C0%2C0-.27%2C1.38l.26.4A8.22%2C8.22%2C0%2C0%2C0%2C66.66%2C62h9.08l4.82%2C4.14L63%2C65.47a11%2C11%2C0%2C0%2C1-8.28-4.28l-2.17-3.42C52.66%2C57.81%2C52.81%2C57.83%2C53%2C57.86Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"></head>
+<body>
+    <div id="notification-container"></div>
+    <div id="app-wrapper">
+        <div id="welcomeScreen" class="">
+            <h1>Welcome to Sparrow CRM</h1>
+            <p>Your private, portable, and powerful offline CRM. Get started by importing your contacts from a CSV file. All data stays on your machine.</p>
+            <div id="file-drop-zone" class="drop-zone">
+                <button id="import-csv-btn-welcome" class="btn btn-primary">Select or Drop CSV File</button>
+                <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+            </div>
+        </div>
+
+        <div id="appScreen" class="hidden">
+            <header>
+                <div class="logo-area">
+                    <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="var(--text-primary)"><g id="SVGRepo_iconCarrier" style="" transform="matrix(1.92623, 0, 0, 1.927014, -60.113792, -58.564831)"><g data-name="Bird Nest" id="Bird_Nest"><path class="cls-1" d="M64,32A32,32,0,0,0,32,64a31.51,31.51,0,0,0,.61,6.18s0,0,0,0,0,0,0,.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34,1,0,.13.08.25.13.38.15.39.3.78.46,1.16l.08.18a32,32,0,0,0,5.74,9l.06.06c.32.35.64.69,1,1l.1.1c.33.33.66.65,1,1l.09.08a29.29,29.29,0,0,0,2.28,1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34,1,.49l.16.08a32.52,32.52,0,0,0,4.87,1.78l.18,0,1,.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58,0c.51,0,1,0,1.53,0s1,0,1.54,0l.57,0,.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1,1-.25.18,0a31.57,31.57,0,0,0,4.88-1.78l.15-.07,1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88,28.88,0,0,0,2.27-1.87l.12-.11c.33-.3.66-.62,1-.93l.11-.12c.33-.33.64-.66,1-1l.08-.08q.49-.54,1-1.11h0a31.78,31.78,0,0,0,4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13,0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84,0,0,0,0,0-.06h0A32,32,0,0,0,64,32Zm0,2A30,30,0,0,1,94,64a30.58,30.58,0,0,1-.42,5H65V67.55l18.35.7h0A1,1,0,0,0,84,66.49L78.81,62h.8a1,1,0,1,0,0-2H76.48l-3.73-3.2a14.35,14.35,0,0,0-6.22-3.93l-7.28-2.28a5.48,5.48,0,0,0-10.08-.48,1.27,1.27,0,0,0-.27.18l-5,5a1,1,0,0,0-.21,1.09,1,1,0,0,0,.92.62h5.06l3.38,5.33a13,13,0,0,0,9.84,5.14H63V69H34.47A29.51,29.51,0,0,1,34,64,30,30,0,0,1,64,34ZM93.18,71.12c-.18.73-.38,1.45-.61,2.16l-.15.44c-.23.68-.48,1.34-.76,2-.06.15-.14.3-.21.45-.23.53-.48,1-.74,1.55-.09.18-.18.37-.28.56-.3.55-.62,1.08-1,1.61l-.43.67c-.34.51-.69,1-1.06,1.49l-.46.59q-.51.65-1,1.26L86,84.4c-.41.44-.82.86-1.25,1.27l-.4.38c-.51.47-1,.91-1.56,1.34l-.35.27c-.58.45-1.17.89-1.78,1.3l-.08.05c-.67.44-1.35.85-2,1.24h0c-.7.38-1.41.74-2.14,1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66,30.66,0,0,1-4.68,1.23l-.28,0c-.75.12-1.5.22-2.27.29l-.36,0c-.78.06-1.57.1-2.36.1s-1.58,0-2.36-.1l-.36,0c-.76-.07-1.52-.17-2.27-.29l-.28,0A30.53,30.53,0,0,1,54.1,92.3l0,0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08,82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67,53.35s0,.09,0,.14a3.38,3.38,0,0,0,.08.34,6.13,6.13,0,0,0,.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77,3.77,0,0,1,.11.87,3.5,3.5,0,0,1-5.72,2.71L51.66,55a3.4,3.4,0,0,1-1-2.49,3.23,3.23,0,0,1,.19-1.13,3.5,3.5,0,0,1,6.7.26ZM53,57.86l.28.06a5.14,5.14,0,0,0,.88.08,5.91,5.91,0,0,0,1-.1h0a5.18,5.18,0,0,0,1-.28l.07,0a5.92,5.92,0,0,0,.83-.43l.08,0a5.82,5.82,0,0,0,.72-.57l.09-.08a6.39,6.39,0,0,0,.59-.68l.08-.1a6.06,6.06,0,0,0,.45-.78l.06-.12a5.08,5.08,0,0,0,.31-.85l0-.14a5.51,5.51,0,0,0,.14-.92s0,0,0-.07l6.33,2a12.33,12.33,0,0,1,5.38,3.42l.09.09,2,1.72H66.66a6.26,6.26,0,0,1-5.2-2.78l-.26-.4a1,1,0,0,0-1.39-.27,1,1,0,0,0-.27,1.38l.26.4A8.22,8.22,0,0,0,66.66,62h9.08l4.82,4.14L63,65.47a11,11,0,0,1-8.28-4.28l-2.17-3.42C52.66,57.81,52.81,57.83,53,57.86Z"></path></g></g></svg>
+                    <h1>Sparrow CRM</h1>
+                </div>
+                <div class="search-area">
+                    <input type="search" id="main-search-input" class="search-bar" placeholder="Search contacts...">
+                </div>
+                <div class="actions-area">
+                    <button id="add-contact-btn-header" class="btn btn-primary">+ New Contact</button>
+                    <button id="import-csv-btn-header" class="btn btn-secondary">Import CSV</button>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary">Export Data</button>
+                        <div class="dropdown-content">
+                            <button data-export-type="contacts">Export Contacts</button>
+                            <button data-export-type="tasks">Export Tasks</button>
+                            <button data-export-type="activities">Export Activities</button>
+                        </div>
+                    </div>
+                    <button id="tasks-btn" class="btn btn-secondary">Tasks</button>
+                    <button id="settings-btn" class="btn btn-secondary">Settings</button>
+                </div>
+            </header>
+            <main>
+                <div id="contactGrid"><div class="contact-card" data-contact-id="5490f973-95c8-4a76-9a5b-0599a231736c"><div class="contact-card-tags"></div><h3>test borrower 25</h3><div class="contact-card-fields"></div></div><div class="contact-card" data-contact-id="4ca97b35-b50c-4645-8bd6-60392b062c1d"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Ela Suyunova</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14266231</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-28</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 594000</div><div class="contact-card-field"><strong>Boolean_test:</strong> Yes</div></div></div><div class="contact-card" data-contact-id="893146ed-b342-44b3-88f9-99ca50c7fcbf"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Cheryl Lyn Aldridge</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14255943</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-29</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 168000</div></div></div><div class="contact-card" data-contact-id="5dde476e-6c40-4d34-bc26-be7ee3bff03c"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Crystal Rose Bender</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14240610</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-22</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 225000</div></div></div><div class="contact-card" data-contact-id="7de3e441-8d48-416e-be84-a761bd70c95f"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Paul Courtright</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14169393</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-02</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 38911</div></div></div><div class="contact-card" data-contact-id="310316b6-c85f-4a49-b405-cf2e10c55107"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Michael Mayers</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14155731</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-07</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 191947</div></div></div><div class="contact-card" data-contact-id="2793961a-f3ff-4592-b5ba-900c8e4680f7"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Osvaldo Licea Pena</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14152008</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-08</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 241544</div></div></div><div class="contact-card" data-contact-id="6de89702-bea0-4e2d-8e84-d60312f2b324"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Cole Bastian</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14145005</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-29</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 135000</div></div></div><div class="contact-card" data-contact-id="cdcb86d0-625c-499e-93c0-1bc4c7d26142"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Tyler Jennings Ward</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14144599</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-16</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 311966</div><div class="contact-card-field"><strong>Boolean_test:</strong> Yes</div></div></div><div class="contact-card" data-contact-id="cabfa765-9ecb-4185-aec4-0368c283c721"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Charles Gross</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14109854</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-21</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 230000</div></div></div><div class="contact-card" data-contact-id="445a536a-36e9-43c1-9799-08939fc8a12b"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Amanda LeClair</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14107066</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-01</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 353479</div></div></div><div class="contact-card" data-contact-id="0cbc2a63-433a-482f-8c10-50c176c03b75"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Jesus Idania Balderrama</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14097553</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-28</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 302421</div></div></div><div class="contact-card" data-contact-id="b72fc38c-2a65-4604-b4b2-17036e27ce27"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Matthew Earl Hoag</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14084200</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-23</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 200000</div></div></div><div class="contact-card" data-contact-id="922f59f9-ae51-4ff3-9913-bbb50102e9d3"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Kevin Roberto Berber</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14067335</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-12</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 284747</div></div></div><div class="contact-card" data-contact-id="2b4460af-3de7-4c3d-804e-9c84982a8d2c"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Shundraus Lewers</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14038850</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-29</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 360000</div></div></div><div class="contact-card" data-contact-id="602346ea-a6b4-4f57-be49-40f6064d1f54"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Clarisa Estefany Lainez Baca</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 14010400</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-30</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 290638</div></div></div><div class="contact-card" data-contact-id="d20c9eb8-455c-440b-b720-c7cefcc8e617"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Glo Marissa Skurnicki</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13996270</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-23</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 279120</div></div></div><div class="contact-card" data-contact-id="8f1f4f71-9ef9-4eed-b5f9-00193478c8ae"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Cassidy Brothers</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13969733</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-20</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 152192</div></div></div><div class="contact-card" data-contact-id="8f3e7219-18f0-4a05-a46a-e01407cc4097"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Amanda Cooper</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13967424</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-01</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 360000</div></div></div><div class="contact-card" data-contact-id="c19edcba-87ce-4fa9-a372-070b98ba2ce2"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Stephanie Dionne Frazier</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13962857</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-30</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 135646</div></div></div><div class="contact-card" data-contact-id="2f66a964-21b7-4c67-bd1d-6b274726caf4"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Daniel Martinez</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13954615</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-06</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 404557</div></div></div><div class="contact-card" data-contact-id="14b38c5a-caba-4e3e-adc0-b9c98fc36378"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Hilary Rodoni</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13923484</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-05</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 350000</div></div></div><div class="contact-card" data-contact-id="99309ae4-150d-4861-82d5-5b2717370519"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>James Oloo Onyango</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13918966</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-02</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 1017500</div></div></div><div class="contact-card" data-contact-id="b5b40359-4fc0-4899-913e-733f8e42a78e"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Robert Westbrook</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13907253</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-21</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 347310</div></div></div><div class="contact-card" data-contact-id="fafe6158-83b4-447e-92b3-9ec74052f95e"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Aaron Cody Peltier</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13903736</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-14</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 206060</div></div></div><div class="contact-card" data-contact-id="6f2061d5-66d3-4a80-9ec1-8be7e20ed8d8"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Patricia M Kenny</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13839427</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-27</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 190272</div></div></div><div class="contact-card" data-contact-id="e9ba90ec-5610-4600-a049-2103bb2e4312"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Michael Cade Poole</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13824925</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-12</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 433860</div></div></div><div class="contact-card" data-contact-id="73d3a4f5-4175-4e27-bcb6-41883bfa89d8"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Scott Alan Barber</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13819143</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-05</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 390000</div></div></div><div class="contact-card" data-contact-id="853f4671-8149-41d7-8ac3-1f68a5f5e5c2"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Alien Ortega Padron</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13769151</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-28</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 283240</div></div></div><div class="contact-card" data-contact-id="0535405a-d608-44a4-a5c4-a6da23cab01d"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Cassidy Smith</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13607539</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-30</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 240562</div></div></div><div class="contact-card" data-contact-id="4d3b57da-4df6-4bcd-b1b1-4208579ccf2d"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Bhavik Bhanderi</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13593776</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-13</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 629625</div></div></div><div class="contact-card" data-contact-id="964fa855-a5d8-453f-ad6a-35f6cf4484b5"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>James Dean Fenton</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13543744</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-07</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 425000</div></div></div><div class="contact-card" data-contact-id="d67154e2-94a9-4586-9ad4-d1ee25b30557"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Andrew Sean Goforth</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13444991</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-30</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 778500</div></div></div><div class="contact-card" data-contact-id="5fa4b490-28db-4e3b-9fe0-c6e2be277ae9"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Kelly L Newbill</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13412987</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-29</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 428367</div></div></div><div class="contact-card" data-contact-id="20b0dd22-4552-4bb4-8f4f-eed4da4cc2cf"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Sam Sungsoo Jun</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 13205521</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-08</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 210000</div></div></div><div class="contact-card" data-contact-id="a72be86b-5e27-4980-abc4-93b7d3cc0d90"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Rose Lippincott</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 12887296</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-20</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 125125</div></div></div><div class="contact-card" data-contact-id="b9507095-b9f6-4fb1-b331-8fab8dbe69f7"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Cary Robert Cole</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 12336217</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-12</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 1539172</div></div></div><div class="contact-card" data-contact-id="8daf35f4-60ac-4538-bbef-7c19dca178e6"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Norma Sue Risch</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 11098628</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-01</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 285000</div></div></div><div class="contact-card" data-contact-id="3d0c7e1a-fd06-4157-bc3a-e7b218023440"><div class="contact-card-tags"><span class="tag-badge">arive test 1</span></div><h3>Benjamin Bouchette Patin</h3><div class="contact-card-fields"><div class="contact-card-field"><strong>ARIVE Loan Id:</strong> 10759656</div><div class="contact-card-field"><strong>Loan Funded:</strong> 2025-05-07</div><div class="contact-card-field"><strong>Total Loan Amount:</strong> 640000</div></div></div></div>
+                <div id="loadMoreContainer" class="hidden">
+                    <button id="loadMoreBtn" class="btn btn-secondary">Load More</button>
+                </div>
+            </main>
+        </div>
+
+        <div id="taskScreen" class="hidden">
+            <header>
+                <h1>All Tasks</h1>
+                <button id="back-to-contacts-btn" class="btn btn-secondary">Back to Contacts</button>
+            </header>
+            <main>
+                <div id="global-task-container">
+                    <div class="detail-section">
+                        <h3>Add Global Task</h3>
+                        <form class="add-item-form" data-form-type="global-task">
+                            <div class="form-group"><label for="global-task-title">New Task</label><input type="text" id="global-task-title" required=""></div>
+                            <div class="form-group"><label for="global-task-due-date">Due Date</label><input type="date" id="global-task-due-date"></div>
+                            <button type="submit" class="btn btn-secondary">Add Global Task</button>
+                        </form>
+                    </div></div>
+                <div id="all-tasks-list"><ul class="item-list"><li data-task-id="47063509-8fef-4eb8-9417-1cf02e0c65f5">
+                                <span class="item-actions"><button data-action="toggle-task" title="Mark Incomplete">⟲</button></span>
+                                <span class="item-title" style="text-decoration:line-through;opacity:0.6;">test task 1</span>
+                                <span><a href="#cdcb86d0-625c-499e-93c0-1bc4c7d26142" class="task-contact-link">Tyler Jennings Ward</a></span>
+                                <span class="item-date" data-action="edit-task-date">No date</span>
+                                <span class="item-actions"><button data-action="delete-task" title="Delete Task">🗑️</button></span>
+                            </li></ul></div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Main Modals -->
+    <div id="contactDetailModal" class="modal">
+        <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>test borrower 25</h2>
+                        <div class="actions-area">
+                            <button id="add-task-btn-modal" class="btn btn-secondary">+ Task</button>
+                            <button id="log-activity-btn-modal" class="btn btn-secondary">+ Activity</button>
+                            <button id="add-field-btn-modal" class="btn btn-secondary">+ Field</button>
+                        </div>
+                        <button class="modal-close-btn">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="main-column">
+                            <div class="detail-section"><h3>Contact Details</h3><div id="contact-fields-container"><div class="detail-field-group" data-field-name="Primary Borrower" data-field-type="text" title="Primary Borrower">
+                                <div class="detail-field-label">Primary Borrower</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text">test borrower 25</span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="test borrower 25">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="ARIVE Loan Id" data-field-type="text" title="ARIVE Loan Id">
+                                <div class="detail-field-label">ARIVE Loan Id</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="Loan Funded" data-field-type="text" title="Loan Funded">
+                                <div class="detail-field-label">Loan Funded</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="Total Loan Amount" data-field-type="text" title="Total Loan Amount">
+                                <div class="detail-field-label">Total Loan Amount</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="Boolean_test" data-field-type="boolean" title="Boolean_test">
+                                <div class="detail-field-label">Boolean_test</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="Numtest" data-field-type="number" title="Numtest">
+                                <div class="detail-field-label">Numtest</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="email-test" data-field-type="email" title="email-test">
+                                <div class="detail-field-label">email-test</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="ULR2" data-field-type="url" title="ULR2">
+                                <div class="detail-field-label">ULR2</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div><div class="detail-field-group" data-field-name="Phone2" data-field-type="phone" title="Phone2">
+                                <div class="detail-field-label">Phone2</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text"></span>
+                                    <div class="contextual-actions"><button title="Copy" data-action="copy" data-value="">📋</button></div>
+                                </div>
+                            </div></div></div>
+                            <div class="detail-section"><h3>Relationships</h3><div id="contact-relationships-container"></div></div>
+                            <div class="danger-zone-section"><h3 style="color:var(--danger-color)">Danger Zone</h3><button id="modal-delete-contact-btn" class="btn btn-danger">Delete This Contact</button></div>
+                        </div>
+                        <div class="sidebar-column">
+                            <div class="detail-section"><h3>Tasks</h3><div id="contact-tasks-container"><ul class="item-list"></ul></div></div>
+                            <div class="detail-section"><h3>Activity Log</h3><div id="contact-activities-container"><ul class="item-list"></ul></div></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer"><button id="modal-save-changes-btn" class="btn btn-primary" disabled="">Save Changes</button></div></div>
+    </div>
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                    <a href="https://buymeacoffee.com/burnsdevelopment" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                        ☕ Support this Creator
+                    </a>
+                </div>
+                <h3>Manage Fields</h3>
+                <p>Use arrows to reorder fields. The top-most visible field is the contact's title.</p>
+                <ul id="fields-list"><li data-field-name="Primary Borrower">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up" disabled="">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">Primary Borrower</span>
+                        <select class="field-type-select"><option value="text" selected="">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="ARIVE Loan Id">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">ARIVE Loan Id</span>
+                        <select class="field-type-select"><option value="text" selected="">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="Loan Funded">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">Loan Funded</span>
+                        <select class="field-type-select"><option value="text" selected="">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="Total Loan Amount">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">Total Loan Amount</span>
+                        <select class="field-type-select"><option value="text" selected="">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="Boolean_test">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">Boolean_test</span>
+                        <select class="field-type-select"><option value="text">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean" selected="">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="Numtest">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">Numtest</span>
+                        <select class="field-type-select"><option value="text">text</option><option value="longtext">longtext</option><option value="number" selected="">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="email-test">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">email-test</span>
+                        <select class="field-type-select"><option value="text">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email" selected="">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="ULR2">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down">▼</button>
+                        </div>
+                        <span class="field-name">ULR2</span>
+                        <select class="field-type-select"><option value="text">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url" selected="">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li><li data-field-name="Phone2">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up">▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down" disabled="">▼</button>
+                        </div>
+                        <span class="field-name">Phone2</span>
+                        <select class="field-type-select"><option value="text">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone" selected="">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option></select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" checked=""> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li></ul>
+                <h3 style="margin-top:2rem;">Data Management</h3>
+                <div class="form-group ghost-mode-group">
+                    <input type="checkbox" id="ghostModeCheckbox" style="width:auto;">
+                    <label for="ghostModeCheckbox">Ghost Mode (disables temporary session recovery)</label>
+                </div>
+                <div id="delete-all-container">
+                    <h3>Danger Zone</h3>
+                    <button id="delete-all-btn" class="btn btn-danger">DELETE ALL DATA</button>
+                    <p style="font-size:0.9rem;color:var(--text-tertiary);">This permanently deletes all contacts, relationships, and custom fields from this file.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+    <div id="newContactModal" class="modal">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h2>Create New Contact</h2>
+                <button class="modal-close-btn">×</button>
+            </div>
+            <form id="new-contact-form">
+                <div class="modal-body">
+                    <div id="new-contact-fields-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem;"><div class="form-group">
+                                    <label for="new-contact-PrimaryBorrower">Primary Borrower</label>
+                                    <input type="text" id="new-contact-PrimaryBorrower" name="Primary Borrower">
+                                </div><div class="form-group">
+                                    <label for="new-contact-ARIVELoanId">ARIVE Loan Id</label>
+                                    <input type="text" id="new-contact-ARIVELoanId" name="ARIVE Loan Id">
+                                </div><div class="form-group">
+                                    <label for="new-contact-LoanFunded">Loan Funded</label>
+                                    <input type="text" id="new-contact-LoanFunded" name="Loan Funded">
+                                </div><div class="form-group">
+                                    <label for="new-contact-TotalLoanAmount">Total Loan Amount</label>
+                                    <input type="text" id="new-contact-TotalLoanAmount" name="Total Loan Amount">
+                                </div><div class="form-group" style="grid-column: span 1; display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                                        <input type="checkbox" id="new-contact-Boolean_test" name="Boolean_test">
+                                        <label for="new-contact-Boolean_test" style="margin-bottom: 0;">Boolean_test</label>
+                                    </div><div class="form-group">
+                                    <label for="new-contact-Numtest">Numtest</label>
+                                    <input type="text" id="new-contact-Numtest" name="Numtest">
+                                </div><div class="form-group">
+                                    <label for="new-contact-email-test">email-test</label>
+                                    <input type="text" id="new-contact-email-test" name="email-test">
+                                </div><div class="form-group">
+                                    <label for="new-contact-ULR2">ULR2</label>
+                                    <input type="text" id="new-contact-ULR2" name="ULR2">
+                                </div><div class="form-group">
+                                    <label for="new-contact-Phone2">Phone2</label>
+                                    <input type="text" id="new-contact-Phone2" name="Phone2">
+                                </div></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="confirm-title">FINAL CONFIRMATION</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">This is your last chance. Clicking OK will permanently erase everything.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-ok-btn" class="btn btn-danger">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Secondary Modals -->
+    <div id="addTaskModal" class="modal secondary-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Add New Task</h2><button class="modal-close-btn">×</button></div>
+            <form id="add-task-form">
+                <div class="modal-body">
+                    <div class="form-group"><label for="new-task-title">Task Title</label><input type="text" id="new-task-title" required=""></div>
+                    <div class="form-group"><label for="new-task-due-date">Due Date (Optional)</label><input type="date" id="new-task-due-date"></div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary">Add Task</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="logActivityModal" class="modal secondary-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Log Activity</h2><button class="modal-close-btn">×</button></div>
+            <form id="log-activity-form">
+                <div class="modal-body">
+                    <div class="form-group"><label for="new-activity-type">Activity Type</label><select id="new-activity-type"><option value="Phone Call">Phone Call</option><option value="SMS">SMS</option><option value="Email">Email</option><option value="Meeting">Meeting</option></select></div>
+                    <div class="form-group"><label for="new-activity-desc">Description</label><input type="text" id="new-activity-desc" required=""></div>
+                    <div class="form-group"><label for="new-activity-date">Date</label><input type="date" id="new-activity-date" required=""></div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary">Log Activity</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="addFieldModal" class="modal secondary-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Add New Field / Relationship</h2><button class="modal-close-btn">×</button></div>
+            <form id="add-field-form">
+                <div class="modal-body">
+                    <div class="form-group"><label for="new-field-name">Field Name / Relationship Label</label><input type="text" id="new-field-name" placeholder="e.g., Birthday or Spouse" required=""></div>
+                    <div class="form-group"><label for="new-field-type">Type</label><select id="new-field-type"><option value="text">text</option><option value="longtext">longtext</option><option value="number">number</option><option value="date">date</option><option value="phone">phone</option><option value="email">email</option><option value="url">url</option><option value="boolean">boolean</option><option value="currency">currency</option><option value="relationship">relationship</option></select></div>
+                    <div id="relationship-creator-ui" class="hidden" style="margin-top:1rem;">
+                        <div class="form-group">
+                            <label for="relationship-search">Find Contact to Link</label>
+                            <input type="text" id="relationship-search" placeholder="Start typing a name...">
+                            <div id="relationship-search-results" class="relationship-search-results"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary">Add</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="save-reminder" class="">
+        <span id="save-reminder-text">You have unsaved changes.</span>
+        <button id="save-now-btn" class="btn btn-primary">Save Now</button>
+    </div>
+    
+    <script id="sparrow-data" type="application/json">{
+  "contacts": [],
+  "tasks": [],
+  "activities": [],
+  "links": [],
+  "relationships": [],
+  "settings": {
+    "fields": [],
+    "customActivityTypes": [
+      "Phone Call",
+      "SMS",
+      "Email",
+      "Meeting"
+    ],
+    "ghostMode": false
+  }
+}</script>
+    <script>
+    // Sparrow CRM - Version 26
+    (function() {
+        "use strict";
+        
+        const LOG_PREFIX = '[SparrowCRM v26]';
+        const CONTACTS_PER_PAGE = 50;
+        const FIELD_TYPES = ['text', 'longtext', 'number', 'date', 'phone', 'email', 'url', 'boolean', 'currency'];
+        const RELATIONSHIP_FIELD_TYPE = 'relationship';
+        
+        let AppState, DOM;
+
+        const Utils = {
+            generateUUID: () => crypto.randomUUID(),
+            showModal: (modal) => modal.classList.add("visible"),
+            hideModal: (modal) => {
+                modal.classList.remove("visible");
+                if (modal.id === 'contactDetailModal') {
+                    history.pushState("", document.title, window.location.pathname + window.location.search);
+                }
+            },
+            debounce: (func, delay) => {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            },
+            showConfirm: (title, message, okClass = 'btn-primary') => {
+                return new Promise((resolve) => {
+                    DOM.confirmModal.title.textContent = title;
+                    DOM.confirmModal.message.textContent = message;
+                    DOM.confirmModal.okBtn.className = `btn ${okClass}`;
+                    Utils.showModal(DOM.confirmModal.el);
+
+                    const okHandler = () => { cleanup(); resolve(true); };
+                    const cancelHandler = () => { cleanup(); resolve(false); };
+                    
+                    DOM.confirmModal.okBtn.addEventListener('click', okHandler, { once: true });
+                    DOM.confirmModal.cancelBtn.addEventListener('click', cancelHandler, { once: true });
+                    
+                    function cleanup() {
+                        Utils.hideModal(DOM.confirmModal.el);
+                    }
+                });
+            },
+            formatFieldValue: (value, type) => {
+                if (value === null || value === undefined || value === '') return '';
+                switch (type) {
+                    case 'currency': {
+                        const num = parseFloat(String(value).replace(/[^0-9.-]+/g,""));
+                        return isNaN(num) ? value : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+                    }
+                    case 'date': {
+                        if (!value) return '';
+                        const d = new Date(value);
+                        if (d instanceof Date && !isNaN(d.getTime())) {
+                            const utcDate = new Date(d.valueOf() + d.getTimezoneOffset() * 60000); // Adjust for timezone for display
+                            return utcDate.toLocaleDateString('en-US', { year: '2-digit', month: 'numeric', day: 'numeric' });
+                        }
+                        return value;
+                    }
+                    case 'boolean': {
+                        return value === true || String(value).toLowerCase() === 'true' ? 'Yes' : 'No';
+                    }
+                    default: return value;
+                }
+            },
+            getContactDisplayName: (contact) => {
+                if (!contact || !contact.fields) return "Unknown Contact";
+                const sortedVisibleFields = AppState.settings.fields.filter(f => f.visible).sort((a, b) => a.order - b.order);
+                if (sortedVisibleFields.length > 0) {
+                    const primaryFieldName = sortedVisibleFields[0].name;
+                    const primaryValue = contact.fields[primaryFieldName];
+                    if (primaryValue) return primaryValue;
+                }
+                // Fallback logic
+                const firstName = contact.fields['First Name'] || contact.fields.firstName || '';
+                const lastName = contact.fields['Last Name'] || contact.fields.lastName || '';
+                const fullName = `${firstName} ${lastName}`.trim();
+                if (fullName) return fullName;
+                const email = contact.fields['Email'] || contact.fields.email || '';
+                if (email) return email;
+                return `Contact ${contact.sparrow_contact_id.substring(0, 8)}`;
+            }
+        };
+        
+        const Core = {
+            setUnsavedChanges: (status) => {
+                if (AppState.ui.unsavedChanges === status) return;
+                console.log(`${LOG_PREFIX} Unsaved changes status set to: ${status}`);
+                AppState.ui.unsavedChanges = status;
+                DOM.saveReminder.classList.toggle('visible', status);
+
+                const contactModalSaveBtn = document.getElementById('modal-save-changes-btn');
+                if (contactModalSaveBtn) {
+                    contactModalSaveBtn.disabled = !status;
+                }
+
+                if (status) {
+                    if (AppState.ui.isFsaSupported) {
+                        if (AppState.ui.fileHandle) {
+                            DOM.saveReminderText.textContent = "You have unsaved changes.";
+                            DOM.saveNowBtn.textContent = "Save Now";
+                        } else {
+                            DOM.saveReminderText.textContent = "To enable one-click saving, grant permission to edit this file.";
+                            DOM.saveNowBtn.textContent = "Grant Permission & Save";
+                        }
+                    } else {
+                        DOM.saveReminderText.textContent = "You have unsaved changes. Download a new copy to save.";
+                        DOM.saveNowBtn.textContent = "Download & Save";
+                    }
+                }
+            },
+            parseCSV: (text) => {
+                const result = [], lines = text.trim().split(/\r\n|\n/), headers = lines[0].split(",").map(h => h.trim().replace(/"/g, ""));
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line.trim()) continue;
+                    const values = []; let currentVal = "", inQuotes = false;
+                    for (let char of line) { if (char === '"') inQuotes = !inQuotes; else if (char === "," && !inQuotes) { values.push(currentVal.trim()); currentVal = ""; } else { currentVal += char; } }
+                    values.push(currentVal.trim());
+                    if (values.every(v => v === "")) { console.log(`${LOG_PREFIX} Skipping empty row at line ${i+1}.`); continue; }
+                    if (values.length === headers.length) { const obj={}; for(let j=0; j<headers.length; j++) obj[headers[j]] = values[j].replace(/^"|"$/g, "").replace(/""/g, '"'); result.push(obj); }
+                    else { console.warn(`${LOG_PREFIX} Mismatched row length at line ${i+1}. Skipping.`); }
+                }
+                console.log(`${LOG_PREFIX} Parsed ${result.length} rows from CSV.`);
+                return result;
+            },
+            processCSVData: async (data) => {
+                const importTag = prompt("Enter a tag for this import (e.g., 'Leads'). Leave blank for none.", "");
+                const newHeaders = Object.keys(data[0]);
+                newHeaders.forEach(h => { if (!AppState.settings.fields.find(f => f.name === h)) AppState.settings.fields.push({name:h, type:"text", visible:true, order:AppState.settings.fields.length}); });
+                AppState.contacts.forEach(c => { newHeaders.forEach(h => { if (!c.fields.hasOwnProperty(h)) Object.assign(c.fields, {[h]: ""}); }); });
+                for (const row of data) {
+                    let existingContact = null;
+                    if (row.sparrow_contact_id) existingContact = AppState.contacts.find(c => c.sparrow_contact_id === row.sparrow_contact_id);
+                    if (!existingContact && row.Email) { const m=AppState.contacts.filter(c=>c.fields.Email && c.fields.Email.toLowerCase()===row.Email.toLowerCase()); if (m.length===1) existingContact=m[0]; }
+                    if (existingContact) {
+                        if (await Utils.showConfirm("Update Contact?", `Found existing contact for '${Utils.getContactDisplayName(existingContact)}'. Update with new data?`)) {
+                            Object.entries(row).forEach(([k,v]) => { if (v !== null && v !== "") existingContact.fields[k]=v; });
+                            if (importTag && !existingContact.tags.includes(importTag)) existingContact.tags.push(importTag);
+                        }
+                    } else {
+                        const newContact = { sparrow_contact_id: Utils.generateUUID(), tags: importTag ? [importTag] : [], fields: {} };
+                        AppState.settings.fields.forEach(f => { newContact.fields[f.name] = row[f.name] || "" });
+                        AppState.contacts.push(newContact);
+                    }
+                }
+                Core.setUnsavedChanges(true);
+                UI.renderApp();
+            },
+            saveData: async () => {
+                console.log(`${LOG_PREFIX} Attempting to save data...`);
+                DOM.saveReminder.classList.remove('visible');
+                const savingNotifId = UI.showNotification('Saving...', 'info', 0);
+                try {
+                    if (AppState.ui.isFsaSupported) {
+                        if (!AppState.ui.fileHandle) { AppState.ui.fileHandle = await window.showSaveFilePicker({ types: [{ description: 'Sparrow CRM File', accept: {'text/html': ['.html']} }] }); }
+                        const writable = await AppState.ui.fileHandle.createWritable();
+                        await writable.write(Core.generateHtmlToSave());
+                        await writable.close();
+                        Core.setUnsavedChanges(false);
+                        UI.showNotification('File saved successfully.', 'success');
+                    } else {
+                        const blob = new Blob([Core.generateHtmlToSave()], { type: 'text/html' });
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'sparrow-crm-data.html';
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(a.href);
+                        Core.setUnsavedChanges(false);
+                        UI.showNotification('File downloaded successfully.', 'success');
+                    }
+                    console.log(`${LOG_PREFIX} Save successful.`);
+                } catch (err) {
+                    if (err.name !== 'AbortError') { console.error(`${LOG_PREFIX} Error saving file:`, err); UI.showNotification(`Error saving file: ${err.message}`, 'danger'); }
+                    else { UI.showNotification('Save cancelled.', 'info'); }
+                } finally {
+                    UI.hideNotification(savingNotifId);
+                }
+            },
+            generateHtmlToSave: () => {
+                const docClone = document.cloneNode(true);
+                const notificationContainerClone = docClone.getElementById('notification-container');
+                if (notificationContainerClone) { notificationContainerClone.innerHTML = ''; }
+                const dataToSave = { ...AppState };
+                delete dataToSave.ui; // Don't save transient UI state
+                const jsonString = JSON.stringify(dataToSave, null, 2);
+                const scriptTagClone = docClone.getElementById('sparrow-data');
+                scriptTagClone.textContent = jsonString;
+                return `<!DOCTYPE html>\n` + docClone.documentElement.outerHTML;
+            },
+            generateCSVString: (dataType) => {
+                const data = AppState[dataType];
+                if (!data || data.length === 0) return "";
+                let headers, rows;
+                if (dataType === 'contacts') {
+                    headers = AppState.settings.fields.map(f => f.name);
+                    if (!headers.includes('sparrow_contact_id')) headers.unshift('sparrow_contact_id');
+                    if (!headers.includes('tags')) headers.push('tags');
+                    rows = data.map(contact => headers.map(header => {
+                        if (header === 'sparrow_contact_id') return contact.sparrow_contact_id;
+                        if (header === 'tags') return contact.tags.join(';');
+                        return contact.fields[header] || '';
+                    }));
+                } else { // For tasks, activities, etc.
+                    headers = Object.keys(data[0]);
+                    rows = data.map(item => headers.map(header => item[header] || ''));
+                }
+                const csvRows = [headers.join(',')];
+                rows.forEach(row => {
+                    const values = row.map(value => {
+                        const stringValue = String(value);
+                        return stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') ? `"${stringValue.replace(/"/g,'""')}"` : stringValue;
+                    });
+                    csvRows.push(values.join(','))
+                });
+                return csvRows.join('\n');
+            },
+            exportData: (dataType) => {
+                console.log(`${LOG_PREFIX} Exporting ${dataType}...`);
+                const csvString = Core.generateCSVString(dataType);
+                if (!csvString) { UI.showNotification(`No ${dataType} to export.`, "info"); return }
+                const blob = new Blob([csvString], {type:"text/csv;charset=utf-8;"});
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `sparrow-crm-${dataType}-${new Date().toISOString().split("T")[0]}.csv`;
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(a.href);
+            },
+            addNewContact: (formData) => {
+                console.log(`${LOG_PREFIX} Creating new contact.`, formData);
+                const newContact = {
+                    sparrow_contact_id: Utils.generateUUID(),
+                    tags: [],
+                    fields: {}
+                };
+                AppState.settings.fields.forEach(f => {
+                    newContact.fields[f.name] = formData[f.name] || (f.type === 'boolean' ? false : '');
+                });
+                AppState.contacts.unshift(newContact); // Add to top for immediate visibility
+                Core.setUnsavedChanges(true);
+                UI.renderContactGrid();
+                Utils.hideModal(DOM.newContactModal);
+                UI.showNotification("Contact created successfully.", "success");
+            },
+            updateContactField: (contactId, fieldName, newValue, originalValue) => {
+                if (newValue === originalValue) return;
+                const contact = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+                if (contact) {
+                    console.log(`${LOG_PREFIX} Updating field '${fieldName}' for contact ${contactId} from '${originalValue}' to '${newValue}'.`);
+                    contact.fields[fieldName] = newValue;
+                    Core.setUnsavedChanges(true);
+                }
+            },
+            addTask: (contactId, taskData) => {
+                const newTask = { sparrow_task_id: Utils.generateUUID(), sparrow_contact_id: contactId, title: taskData.title, dueDate: taskData.dueDate, status: 'To-Do' };
+                AppState.tasks.push(newTask); Core.setUnsavedChanges(true);
+                if (contactId) UI.renderContactModal(contactId); else UI.renderTaskView();
+            },
+            updateTask: (taskId, newValues) => {
+                const task = AppState.tasks.find(t => t.sparrow_task_id === taskId);
+                if (task) { Object.assign(task, newValues); Core.setUnsavedChanges(true);
+                    const contactId = task.sparrow_contact_id;
+                    if(DOM.taskScreen.classList.contains('hidden')) { UI.renderContactModal(contactId); } else { UI.renderTaskView(); }
+                }
+            },
+            deleteTask: async(taskId) => {
+                const task = AppState.tasks.find(t => t.sparrow_task_id === taskId);
+                if (!task) return;
+                if (await Utils.showConfirm("Delete Task?", `Are you sure you want to delete the task: "${task.title}"?`, 'btn-danger')) {
+                    const contactId = task.sparrow_contact_id;
+                    AppState.tasks = AppState.tasks.filter(t => t.sparrow_task_id !== taskId);
+                    Core.setUnsavedChanges(true);
+                    if(DOM.taskScreen.classList.contains('hidden')) { UI.renderContactModal(contactId); } else { UI.renderTaskView(); }
+                }
+            },
+            logActivity: (contactId, activityData) => {
+                const newActivity = { sparrow_activity_id: Utils.generateUUID(), sparrow_contact_id: contactId, type: activityData.type, date: activityData.date, description: activityData.description };
+                AppState.activities.unshift(newActivity); Core.setUnsavedChanges(true);
+                UI.renderContactModal(contactId);
+            },
+            deleteActivity: async(activityId) => {
+                const activity = AppState.activities.find(a => a.sparrow_activity_id === activityId);
+                if (!activity) return;
+                if (await Utils.showConfirm("Delete Activity Log?", `Are you sure you want to delete this ${activity.type} log from ${new Date(activity.date).toLocaleDateString()}?`, 'btn-danger')) {
+                    const contactId = activity.sparrow_contact_id;
+                    AppState.activities = AppState.activities.filter(a => a.sparrow_activity_id !== activityId);
+                    Core.setUnsavedChanges(true);
+                    UI.renderContactModal(contactId);
+                }
+            },
+            addCustomField: (contactId, newFieldName, newFieldType) => {
+                if (!newFieldName || AppState.settings.fields.find(f => f.name.toLowerCase() === newFieldName.toLowerCase())) { UI.showNotification(`Field "${newFieldName}" already exists or name is empty.`, "danger"); return; }
+                console.log(`${LOG_PREFIX} Adding new custom field: '${newFieldName}' of type '${newFieldType}'.`);
+                AppState.settings.fields.push({ name: newFieldName, type: newFieldType, visible: true, order: AppState.settings.fields.length });
+                AppState.contacts.forEach(c => { c.fields[newFieldName] = ''; });
+                Core.setUnsavedChanges(true);
+                UI.renderContactModal(contactId);
+            },
+            addRelationship: (sourceId, targetId, label) => {
+                if (!targetId || !label) { UI.showNotification("Please select a contact and provide a relationship label.", "danger"); return; }
+                const newRelationship = { sparrow_relationship_id: Utils.generateUUID(), source_contact_id: sourceId, target_contact_id: targetId, label: label };
+                AppState.relationships.push(newRelationship);
+                Core.setUnsavedChanges(true);
+                UI.renderContactModal(sourceId);
+            },
+            deleteContact: async (contactId) => {
+                const contact = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+                if (await Utils.showConfirm("Delete Contact?", `Are you sure you want to permanently delete ${Utils.getContactDisplayName(contact)}? This action cannot be undone.`, 'btn-danger')) {
+                    console.log(`${LOG_PREFIX} Deleting contact ${contactId}.`);
+                    AppState.contacts = AppState.contacts.filter(c => c.sparrow_contact_id !== contactId);
+                    AppState.relationships = AppState.relationships.filter(r => r.source_contact_id !== contactId && r.target_contact_id !== contactId);
+                    Core.setUnsavedChanges(true);
+                    Utils.hideModal(DOM.contactDetailModal);
+                    UI.renderApp();
+                }
+            },
+            deleteField: async(fieldName) => {
+                if (await Utils.showConfirm("Delete Field?", `Are you sure you want to permanently delete the field "${fieldName}"? This will remove the field and all its data from every contact.`, 'btn-danger')) {
+                    console.log(`${LOG_PREFIX} Deleting field '${fieldName}'.`);
+                    AppState.settings.fields = AppState.settings.fields.filter(f => f.name !== fieldName).map((f, i) => ({...f, order: i}));
+                    AppState.contacts.forEach(contact => { delete contact.fields[fieldName]; });
+                    Core.setUnsavedChanges(true);
+                    UI.renderSettingsModal();
+                    UI.showNotification(`Field "${fieldName}" deleted.`, "success");
+                }
+            },
+            deleteAllData: async() => {
+                if (!(await Utils.showConfirm("DELETE ALL DATA?","This action will erase all contacts, relationships, and custom fields from this file.","btn-danger"))) return;
+                if (await Utils.showConfirm("FINAL CONFIRMATION", "This is your last chance. Clicking OK will permanently erase everything.", "btn-danger")) {
+                    console.log(`${LOG_PREFIX} DELETING ALL USER DATA.`);
+                    AppState.contacts = []; AppState.tasks = []; AppState.activities = []; AppState.links = []; AppState.relationships = []; AppState.settings.fields = [];
+                    UI.resetToWelcomeScreen();
+                    if (AppState.ui.fileHandle) { await Core.saveData(); UI.showNotification("All data deleted and file updated.", "success"); }
+                    else { Core.setUnsavedChanges(true); UI.showNotification("All data has been deleted. Save the file to make it permanent.", "success"); }
+                } else {
+                    UI.showNotification("Delete cancelled.", "info");
+                }
+            }
+        };
+
+        const UI = {
+            showNotification: (message, type = 'info', duration = 3000) => {
+                const id = 'notif-' + Utils.generateUUID();
+                const notification = document.createElement('div');
+                notification.id = id;
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                DOM.notificationContainer.appendChild(notification);
+                setTimeout(() => notification.classList.add('visible'), 10);
+                if (duration > 0) {
+                    setTimeout(() => UI.hideNotification(id), duration);
+                }
+                return id;
+            },
+            hideNotification: (id) => {
+                const notification = document.getElementById(id);
+                if (notification) {
+                    notification.classList.remove('visible');
+                    notification.addEventListener('transitionend', () => notification.remove());
+                }
+            },
+            setFavicon: () => {
+                const svgElement = document.querySelector('.logo-area svg');
+                if (!svgElement) return;
+                const svgClone = svgElement.cloneNode(true);
+                svgClone.setAttribute('fill', '#f0f8ff'); // Use a hardcoded color for reliability
+                const svgString = new XMLSerializer().serializeToString(svgClone);
+                const encodedSvg = encodeURIComponent(svgString).replace(/'/g, '%27').replace(/"/g, '%22');
+                const link = document.createElement('link');
+                link.rel = 'icon';
+                link.type = 'image/svg+xml';
+                link.href = `data:image/svg+xml,${encodedSvg}`;
+                document.head.appendChild(link);
+                console.log(`${LOG_PREFIX} Favicon set successfully.`);
+            },
+            resetToWelcomeScreen: () => {
+                Utils.hideModal(DOM.settingsModal);
+                Utils.hideModal(DOM.contactDetailModal);
+                DOM.appScreen.classList.add("hidden");
+                DOM.taskScreen.classList.add("hidden");
+                DOM.welcomeScreen.classList.remove("hidden");
+            },
+            renderApp: () => {
+                DOM.welcomeScreen.classList.add("hidden");
+                DOM.taskScreen.classList.add("hidden");
+                DOM.appScreen.classList.remove("hidden");
+                UI.renderContactGrid();
+            },
+            renderContactGrid: (loadMore = false) => {
+                const filterText = DOM.mainSearchInput.value.toLowerCase();
+                if (filterText !== AppState.ui.currentFilter || !loadMore) {
+                    AppState.ui.currentFilter = filterText;
+                    AppState.ui.renderedContactsCount = 0;
+                    DOM.contactGrid.innerHTML = "";
+                }
+                const filteredContacts = AppState.contacts.filter(contact => 
+                    Object.values(contact.fields).some(val => String(val).toLowerCase().includes(filterText)) ||
+                    contact.tags.some(tag => tag.toLowerCase().includes(filterText))
+                );
+                const fieldsToShowOnCard = AppState.settings.fields.filter(f => f.visible).sort((a,b) => a.order - b.order).slice(1, 5);
+                const contactsToRender = filteredContacts.slice(AppState.ui.renderedContactsCount, AppState.ui.renderedContactsCount + CONTACTS_PER_PAGE);
+                const fragment = document.createDocumentFragment();
+                contactsToRender.forEach(contact => {
+                    const card = document.createElement("div");
+                    card.className = "contact-card";
+                    card.dataset.contactId = contact.sparrow_contact_id;
+                    const tagsHTML = `<div class="contact-card-tags">${contact.tags.map(tag => `<span class="tag-badge">${tag}</span>`).join("")}</div>`;
+                    let fieldsHTML = `${tagsHTML}<h3>${Utils.getContactDisplayName(contact)}</h3><div class="contact-card-fields">`;
+                    fieldsToShowOnCard.forEach(fieldDef => {
+                        const value = contact.fields[fieldDef.name];
+                        if (value) {
+                            fieldsHTML += `<div class="contact-card-field"><strong>${fieldDef.name}:</strong> ${Utils.formatFieldValue(value, fieldDef.type)}</div>`;
+                        }
+                    });
+                    card.innerHTML = fieldsHTML + "</div>";
+                    fragment.appendChild(card);
+                });
+                DOM.contactGrid.appendChild(fragment);
+                AppState.ui.renderedContactsCount += contactsToRender.length;
+                DOM.loadMoreContainer.classList.toggle("hidden", AppState.ui.renderedContactsCount >= filteredContacts.length);
+            },
+            renderContactModal: (contactId) => {
+                const contact = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+                if (!contact) return;
+                const fieldsInOrder = AppState.settings.fields.sort((a, b) => a.order - b.order);
+                const fieldsHTML = fieldsInOrder.map(fieldDef => {
+                    if (!fieldDef.visible) return "";
+                    const value = contact.fields[fieldDef.name] || "";
+                    const formattedValue = Utils.formatFieldValue(value, fieldDef.type);
+                    let contextualActions = `<button title="Copy" data-action="copy" data-value="${value}">📋</button>`;
+                    if (fieldDef.type === 'email' && value) contextualActions += `<a href="mailto:${value}" title="Email"><button>📧</button></a>`;
+                    if (fieldDef.type === 'phone' && value) contextualActions += `<a href="tel:${value}" title="Call"><button>📞</button></a>`;
+
+                    return `<div class="detail-field-group" data-field-name="${fieldDef.name}" data-field-type="${fieldDef.type}" title="${fieldDef.name}">
+                                <div class="detail-field-label">${fieldDef.name}</div>
+                                <div class="detail-field-value">
+                                    <span class="value-text">${formattedValue}</span>
+                                    <div class="contextual-actions">${contextualActions}</div>
+                                </div>
+                            </div>`;
+                }).join('');
+                
+                const relationshipsHTML = AppState.relationships.filter(r => r.source_contact_id === contactId).map(rel => {
+                    const targetContact = AppState.contacts.find(c => c.sparrow_contact_id === rel.target_contact_id);
+                    return `<div class="detail-field-group">
+                                <div class="detail-field-label" title="${rel.label}">${rel.label}</div>
+                                <div class="detail-field-value" style="pointer-events:all;cursor:default">
+                                    <a href="#${rel.target_contact_id}" data-contact-id="${rel.target_contact_id}" class="relationship-link">${Utils.getContactDisplayName(targetContact)}</a>
+                                </div>
+                            </div>`;
+                }).join('');
+
+                const tasks = AppState.tasks.filter(t => t.sparrow_contact_id === contactId).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+                const tasksHTML = `<ul class="item-list">${tasks.map(task => {
+                    const isComplete = task.status === 'Completed';
+                    const toggleIcon = isComplete ? '⟲' : '✓';
+                    return `<li data-task-id="${task.sparrow_task_id}">
+                                <span class="item-actions"><button data-action="toggle-task" title="Mark ${isComplete ? 'Incomplete' : 'Complete'}">${toggleIcon}</button></span>
+                                <span class="item-title" style="${isComplete ? 'text-decoration:line-through;opacity:0.6;' : ''}">${task.title}</span>
+                                <span class="item-date" data-action="edit-task-date">${task.dueDate ? Utils.formatFieldValue(task.dueDate, 'date') : 'No date'}</span>
+                                <span class="item-actions"><button data-action="delete-task" title="Delete Task">🗑️</button></span>
+                            </li>`;
+                }).join('')}</ul>`;
+
+                const activities = AppState.activities.filter(a => a.sparrow_contact_id === contactId); // Already sorted on add
+                const activitiesHTML = `<ul class="item-list">${activities.map(act => `
+                    <li data-activity-id="${act.sparrow_activity_id}">
+                        <span class="item-title"><strong>${act.type}:</strong> ${act.description}</span>
+                        <span class="item-date">${Utils.formatFieldValue(act.date, 'date')}</span>
+                        <span class="item-actions"><button data-action="delete-activity" title="Delete Activity">🗑️</button></span>
+                    </li>`).join('')}</ul>`;
+                
+                const saveButtonText = AppState.ui.fileHandle ? "Save Changes" : "Grant Permission & Save";
+                const modalHTML = `
+                    <div class="modal-header">
+                        <h2>${Utils.getContactDisplayName(contact)}</h2>
+                        <div class="actions-area">
+                            <button id="add-task-btn-modal" class="btn btn-secondary">+ Task</button>
+                            <button id="log-activity-btn-modal" class="btn btn-secondary">+ Activity</button>
+                            <button id="add-field-btn-modal" class="btn btn-secondary">+ Field</button>
+                        </div>
+                        <button class="modal-close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="main-column">
+                            <div class="detail-section"><h3>Contact Details</h3><div id="contact-fields-container">${fieldsHTML}</div></div>
+                            <div class="detail-section"><h3>Relationships</h3><div id="contact-relationships-container">${relationshipsHTML}</div></div>
+                            <div class="danger-zone-section"><h3 style="color:var(--danger-color)">Danger Zone</h3><button id="modal-delete-contact-btn" class="btn btn-danger">Delete This Contact</button></div>
+                        </div>
+                        <div class="sidebar-column">
+                            <div class="detail-section"><h3>Tasks</h3><div id="contact-tasks-container">${tasksHTML}</div></div>
+                            <div class="detail-section"><h3>Activity Log</h3><div id="contact-activities-container">${activitiesHTML}</div></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer"><button id="modal-save-changes-btn" class="btn btn-primary" ${!AppState.ui.unsavedChanges ? 'disabled' : ''}>${saveButtonText}</button></div>`;
+                
+                DOM.contactDetailModal.querySelector(".modal-content").innerHTML = modalHTML;
+                Events.setupContactModalEventListeners(contactId);
+                Utils.showModal(DOM.contactDetailModal);
+            },
+            renderSettingsModal: () => {
+                const modalContent = DOM.settingsModal.querySelector(".modal-content");
+                const sortedFields = AppState.settings.fields.sort((a,b) => a.order - b.order);
+                const fieldsHTML = sortedFields.map((field, index) =>
+                    `<li data-field-name="${field.name}">
+                        <div class="field-order-controls" style="display:flex;flex-direction:column;">
+                            <button class="field-order-btn" data-action="up" title="Move Up" ${index === 0 ? "disabled" : ""}>▲</button>
+                            <button class="field-order-btn" data-action="down" title="Move Down" ${index === sortedFields.length - 1 ? "disabled" : ""}>▼</button>
+                        </div>
+                        <span class="field-name">${field.name}</span>
+                        <select class="field-type-select">${FIELD_TYPES.map(t => `<option value="${t}" ${field.type === t ? "selected" : ""}>${t}</option>`).join("")}</select>
+                        <label style="display:flex;align-items:center;gap:0.25rem;"><input type="checkbox" class="field-visibility-toggle" ${field.visible ? "checked" : ""}> Visible</label>
+                        <button class="field-delete-btn" data-action="delete" title="Delete Field">🗑️</button>
+                    </li>`
+                ).join("");
+                modalContent.querySelector("#fields-list").innerHTML = fieldsHTML;
+                modalContent.querySelector("#ghostModeCheckbox").checked = AppState.settings.ghostMode;
+                Utils.showModal(DOM.settingsModal);
+            },
+            showNewContactModal: () => {
+                console.log(`${LOG_PREFIX} Showing New Contact modal.`);
+                const container = DOM.newContactModal.querySelector('#new-contact-fields-container');
+                container.innerHTML = AppState.settings.fields
+                    .filter(f => f.visible)
+                    .sort((a,b) => a.order - b.order)
+                    .map(field => {
+                        if (field.type === 'boolean') {
+                            return `<div class="form-group" style="grid-column: span 1; display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                                        <input type="checkbox" id="new-contact-${field.name.replace(/\s/g, '')}" name="${field.name}">
+                                        <label for="new-contact-${field.name.replace(/\s/g, '')}" style="margin-bottom: 0;">${field.name}</label>
+                                    </div>`;
+                        }
+                        return `<div class="form-group">
+                                    <label for="new-contact-${field.name.replace(/\s/g, '')}">${field.name}</label>
+                                    <input type="${field.type === 'date' ? 'date' : 'text'}" id="new-contact-${field.name.replace(/\s/g, '')}" name="${field.name}">
+                                </div>`;
+                    }).join('');
+                Utils.showModal(DOM.newContactModal);
+            },
+            showAddTaskModal:() => { DOM.addTaskModal.querySelector('form').reset(); Utils.showModal(DOM.addTaskModal); },
+            showLogActivityModal:() => {
+                const form = DOM.logActivityModal.querySelector('form');
+                form.reset();
+                form.querySelector("#new-activity-type").innerHTML = AppState.settings.customActivityTypes.map(t => `<option value="${t}">${t}</option>`).join("");
+                form.querySelector("#new-activity-date").value = (new Date()).toISOString().split("T")[0];
+                Utils.showModal(DOM.logActivityModal);
+            },
+            showAddFieldModal:() => {
+                const form = DOM.addFieldModal.querySelector('form');
+                form.reset();
+                form.querySelector("#new-field-type").innerHTML = [...FIELD_TYPES, RELATIONSHIP_FIELD_TYPE].map(t => `<option value="${t}">${t}</option>`).join("");
+                form.querySelector("#relationship-creator-ui").classList.add("hidden");
+                form.querySelector("#relationship-search-results").innerHTML = "";
+                Utils.showModal(DOM.addFieldModal);
+            },
+            renderTaskView: () => {
+                console.log(`${LOG_PREFIX} Rendering All Tasks view.`);
+                DOM.appScreen.classList.add('hidden');
+                DOM.taskScreen.classList.remove('hidden');
+                
+                const globalTaskForm = `
+                    <div class="detail-section">
+                        <h3>Add Global Task</h3>
+                        <form class="add-item-form" data-form-type="global-task">
+                            <div class="form-group"><label for="global-task-title">New Task</label><input type="text" id="global-task-title" required></div>
+                            <div class="form-group"><label for="global-task-due-date">Due Date</label><input type="date" id="global-task-due-date"></div>
+                            <button type="submit" class="btn btn-secondary">Add Global Task</button>
+                        </form>
+                    </div>`;
+
+                const today = new Date(); today.setHours(0,0,0,0);
+                const sortedTasks = [...AppState.tasks].sort((a,b) => {
+                    const aDate = a.dueDate ? new Date(a.dueDate) : null;
+                    const bDate = b.dueDate ? new Date(b.dueDate) : null;
+                    if (a.status !== b.status) return a.status === 'Completed' ? 1 : -1; // Incomplete tasks first
+                    if (!aDate && !bDate) return 0; // No dates, equal
+                    if (!aDate) return 1; // a has no date, sort after
+                    if (!bDate) return -1; // b has no date, sort after
+                    const aOverdue = aDate < today, bOverdue = bDate < today;
+                    if (aOverdue !== bOverdue) return aOverdue ? -1 : 1; // Overdue tasks first
+                    return aDate - bDate; // Sort by date
+                });
+
+                const tasksHTML = `<ul class="item-list">${sortedTasks.map(task => {
+                    const isComplete = task.status === 'Completed';
+                    const toggleIcon = isComplete ? '⟲' : '✓';
+                    const contact = task.sparrow_contact_id ? AppState.contacts.find(c => c.sparrow_contact_id === task.sparrow_contact_id) : null;
+                    const contactLink = contact ? `<a href="#${contact.sparrow_contact_id}" class="task-contact-link">${Utils.getContactDisplayName(contact)}</a>` : `<em>Global</em>`;
+                    return `<li data-task-id="${task.sparrow_task_id}">
+                                <span class="item-actions"><button data-action="toggle-task" title="Mark ${isComplete ? 'Incomplete' : 'Complete'}">${toggleIcon}</button></span>
+                                <span class="item-title" style="${isComplete ? 'text-decoration:line-through;opacity:0.6;' : ''}">${task.title}</span>
+                                <span>${contactLink}</span>
+                                <span class="item-date" data-action="edit-task-date">${task.dueDate ? Utils.formatFieldValue(task.dueDate, 'date') : 'No date'}</span>
+                                <span class="item-actions"><button data-action="delete-task" title="Delete Task">🗑️</button></span>
+                            </li>`;
+                }).join('')}</ul>`;
+                
+                DOM.taskScreen.querySelector('#global-task-container').innerHTML = globalTaskForm;
+                DOM.taskScreen.querySelector('#all-tasks-list').innerHTML = tasksHTML;
+            }
+        };
+
+        const Events = {
+            init: () => {
+                Events.populateDomObject();
+                UI.setFavicon();
+                const triggerImport = () => DOM.csvFileInput.click();
+                DOM.importCsvWelcomeBtn.addEventListener("click", triggerImport);
+                DOM.importCsvHeaderBtn.addEventListener("click", triggerImport);
+                DOM.csvFileInput.addEventListener("change", Events.handleFileSelect);
+                DOM.fileDropZone.addEventListener("dragover", Events.handleDragOver);
+                DOM.fileDropZone.addEventListener("dragleave", Events.handleDragLeave);
+                DOM.fileDropZone.addEventListener("drop", Events.handleDrop);
+                DOM.mainSearchInput.addEventListener("input", Utils.debounce(() => {
+                    const query = DOM.mainSearchInput.value;
+                    const url = new URL(window.location);
+                    if (query) { url.searchParams.set("q", query); } else { url.searchParams.delete("q"); }
+                    history.replaceState(null, "", url.toString());
+                    UI.renderContactGrid();
+                }, 300));
+
+                DOM.addContactHeaderBtn.addEventListener('click', UI.showNewContactModal);
+                DOM.newContactModal.querySelector('form').addEventListener('submit', Events.handleNewContactSubmit);
+
+                document.querySelector(".actions-area .dropdown").addEventListener("click", e => {
+                    const exportType = e.target.dataset.exportType;
+                    if(exportType) Core.exportData(exportType);
+                });
+
+                DOM.settingsBtn.addEventListener("click", UI.renderSettingsModal);
+                DOM.tasksBtn.addEventListener("click", UI.renderTaskView);
+                DOM.backToContactsBtn.addEventListener("click", UI.renderApp);
+                DOM.saveNowBtn.addEventListener("click", Core.saveData);
+                DOM.loadMoreBtn.addEventListener("click", () => UI.renderContactGrid(true));
+
+                document.body.addEventListener("click", e => { if (e.target.classList.contains("modal-close-btn")) Utils.hideModal(e.target.closest(".modal")); });
+                
+                DOM.settingsModal.addEventListener("click", Events.handleSettingsModalClick);
+                DOM.contactGrid.addEventListener("click", e => {
+                    const card = e.target.closest(".contact-card");
+                    if (card) window.location.hash = card.dataset.contactId;
+                });
+
+                DOM.taskScreen.addEventListener("submit", Events.handleTaskScreenSubmit);
+                DOM.taskScreen.addEventListener("click", Events.handleTaskScreenClick);
+                DOM.taskScreen.addEventListener("click", e => { // Handle contact links from task view
+                    const contactLink = e.target.closest('.task-contact-link');
+                    if (contactLink) {
+                        e.preventDefault();
+                        UI.renderApp();
+                        window.location.hash = contactLink.hash;
+                    }
+                });
+                
+                window.addEventListener("hashchange", () => {
+                    const contactId = window.location.hash.substring(1);
+                    const isModalVisible = DOM.contactDetailModal.classList.contains("visible");
+                    const contactExists = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+                    if (contactId && contactExists) {
+                         UI.renderContactModal(contactId);
+                    } else if (!contactId && isModalVisible) {
+                        Utils.hideModal(DOM.contactDetailModal);
+                    }
+                });
+                window.addEventListener("beforeunload", e => { if (AppState.ui.unsavedChanges) { e.preventDefault(); e.returnValue = ""; } });
+            },
+            populateDomObject: () => {
+                DOM = {
+                    welcomeScreen: document.getElementById("welcomeScreen"),
+                    appScreen: document.getElementById("appScreen"),
+                    taskScreen: document.getElementById("taskScreen"),
+                    importCsvWelcomeBtn: document.getElementById("import-csv-btn-welcome"),
+                    importCsvHeaderBtn: document.getElementById("import-csv-btn-header"),
+                    addContactHeaderBtn: document.getElementById("add-contact-btn-header"),
+                    csvFileInput: document.getElementById("csv-file-input"),
+                    fileDropZone: document.getElementById("file-drop-zone"),
+                    contactGrid: document.getElementById("contactGrid"),
+                    mainSearchInput: document.getElementById("main-search-input"),
+                    contactDetailModal: document.getElementById("contactDetailModal"),
+                    settingsModal: document.getElementById("settingsModal"),
+                    newContactModal: document.getElementById('newContactModal'),
+                    settingsBtn: document.getElementById("settings-btn"),
+                    tasksBtn: document.getElementById('tasks-btn'),
+                    backToContactsBtn: document.getElementById('back-to-contacts-btn'),
+                    saveReminder: document.getElementById("save-reminder"),
+                    saveReminderText: document.getElementById("save-reminder-text"),
+                    saveNowBtn: document.getElementById("save-now-btn"),
+                    loadMoreContainer: document.getElementById("loadMoreContainer"),
+                    loadMoreBtn: document.getElementById("loadMoreBtn"),
+                    ghostModeCheckbox: document.getElementById("ghostModeCheckbox"),
+                    notificationContainer: document.getElementById("notification-container"),
+                    confirmModal: {el:document.getElementById("confirmModal"), title:document.getElementById("confirm-title"), message:document.getElementById("confirm-message"), okBtn:document.getElementById("confirm-ok-btn"), cancelBtn:document.getElementById("confirm-cancel-btn")},
+                    addTaskModal: document.getElementById("addTaskModal"),
+                    logActivityModal: document.getElementById("logActivityModal"),
+                    addFieldModal: document.getElementById("addFieldModal")
+                };
+            },
+            handleFileSelect: e => { const file = e.target.files[0]; if (file) Events.readFile(file); e.target.value = ""; },
+            handleDragOver: e => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add("dragover"); },
+            handleDragLeave: e => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove("dragover"); },
+            handleDrop: e => {
+                e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove("dragover");
+                const file = e.dataTransfer.files[0];
+                if (file && (file.type === "text/csv" || file.name.endsWith(".csv"))) { Events.readFile(file); }
+                else { UI.showNotification("Please drop a valid .csv file.", "danger"); }
+            },
+            readFile: file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const data = Core.parseCSV(e.target.result);
+                        if(data.length > 0) Core.processCSVData(data); else UI.showNotification("CSV file is empty or could not be parsed.","danger");
+                    } catch (err) { console.error(`${LOG_PREFIX} Error processing file:`, err); UI.showNotification(`Error processing file: ${err.message}`, "danger"); }
+                };
+                reader.readAsText(file);
+            },
+            handleSettingsModalClick: e => {
+                const button = e.target.closest("button");
+                if (!button) return;
+                if (button.id === "save-settings-btn") {
+                    const newFields = [];
+                    DOM.settingsModal.querySelectorAll("#fields-list li").forEach((li, index) => {
+                        const fieldName = li.dataset.fieldName;
+                        const originalField = AppState.settings.fields.find(f => f.name === fieldName);
+                        if (originalField) {
+                            newFields.push({
+                                ...originalField,
+                                type: li.querySelector(".field-type-select").value,
+                                visible: li.querySelector(".field-visibility-toggle").checked,
+                                order: index
+                            });
+                        }
+                    });
+                    AppState.settings.fields = newFields;
+                    AppState.settings.ghostMode = DOM.settingsModal.querySelector("#ghostModeCheckbox").checked;
+                    if(AppState.settings.ghostMode) { localStorage.removeItem("sparrow-crm-state"); UI.showNotification("Ghost Mode On: Session restore is disabled.","info");}
+                    Core.setUnsavedChanges(true);
+                    Utils.hideModal(DOM.settingsModal);
+                    UI.renderContactGrid();
+                    UI.showNotification("Settings updated. Save the file to make them permanent.", "success");
+                    return;
+                }
+                if (button.id === "delete-all-btn") return Core.deleteAllData();
+                
+                const action = button.dataset.action;
+                const fieldName = button.closest("li")?.dataset.fieldName;
+                if (!action || !fieldName) return;
+                
+                let fields = AppState.settings.fields;
+                const index = fields.findIndex(f => f.name === fieldName);
+                if (index === -1) return;
+                if (action === "up" && index > 0) [fields[index], fields[index - 1]] = [fields[index - 1], fields[index]];
+                if (action === "down" && index < fields.length - 1) [fields[index], fields[index + 1]] = [fields[index + 1], fields[index]];
+                if (action === "delete") { Core.deleteField(fieldName); e.stopImmediatePropagation(); }
+                fields.forEach((f, i) => f.order = i);
+                UI.renderSettingsModal();
+            },
+            setupContactModalEventListeners: (contactId) => {
+                const modalContent = DOM.contactDetailModal.querySelector(".modal-content");
+                if (modalContent) {
+                    modalContent.addEventListener("click", Events.handleContactModalClick);
+                    modalContent.addEventListener("focusout", Events.handleContactModalFocusOut);
+                    modalContent.addEventListener("keydown", Events.handleContactModalKeyDown);
+                    modalContent.addEventListener("input", Events.handleContactModalInput);
+                    modalContent.querySelector("#modal-save-changes-btn").addEventListener("click", Core.saveData);
+                }
+                // Attach form listeners for sub-modals
+                DOM.addTaskModal.querySelector("form").addEventListener("submit", Events.handleModalFormSubmit, { once: true });
+                DOM.logActivityModal.querySelector("form").addEventListener("submit", Events.handleModalFormSubmit, { once: true });
+                DOM.addFieldModal.querySelector("form").addEventListener("submit", Events.handleModalFormSubmit, { once: true });
+            },
+            handleNewContactSubmit: e => {
+                e.preventDefault();
+                const form = e.target;
+                const contactData = {};
+                AppState.settings.fields
+                    .filter(field => field.visible)
+                    .forEach(field => {
+                        const input = form.elements[field.name];
+                        if (input) {
+                            if (input.type === 'checkbox') {
+                                contactData[field.name] = input.checked;
+                            } else {
+                                contactData[field.name] = input.value;
+                            }
+                        }
+                    });
+                Core.addNewContact(contactData);
+            },
+            handleTaskScreenSubmit: e => {
+                e.preventDefault();
+                if (e.target.dataset.formType === 'global-task') {
+                    const title = document.getElementById('global-task-title').value;
+                    const dueDate = document.getElementById('global-task-due-date').value;
+                    if (title) Core.addTask(null, {title, dueDate});
+                    e.target.reset();
+                }
+            },
+            handleTaskScreenClick: e => {
+                const actionEl = e.target.closest("[data-action]");
+                if (!actionEl) return;
+                const action = actionEl.dataset.action;
+                const taskId = actionEl.closest("li[data-task-id]")?.dataset.taskId;
+                if (!taskId) return;
+                if (action === 'toggle-task') {
+                    const currentStatus = AppState.tasks.find(t => t.sparrow_task_id === taskId).status;
+                    Core.updateTask(taskId, { status: currentStatus === 'Completed' ? 'To-Do' : 'Completed' });
+                } else if (action === 'delete-task') {
+                    Core.deleteTask(taskId);
+                }
+            },
+            handleModalFormSubmit: e => {
+                e.preventDefault();
+                const formId = e.target.id;
+                const contactId = window.location.hash.substring(1);
+                
+                if (formId === 'add-task-form') {
+                    Core.addTask(contactId, { title: document.getElementById('new-task-title').value, dueDate: document.getElementById('new-task-due-date').value });
+                    Utils.hideModal(DOM.addTaskModal);
+                } else if (formId === 'log-activity-form') {
+                    const dateParts = document.getElementById('new-activity-date').value.split('-');
+                    const dateISO = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).toISOString();
+                    Core.logActivity(contactId, {type: document.getElementById('new-activity-type').value, description: document.getElementById('new-activity-desc').value, date: dateISO });
+                    Utils.hideModal(DOM.logActivityModal);
+                } else if (formId === 'add-field-form') {
+                    const fieldName = document.getElementById('new-field-name').value;
+                    const fieldType = document.getElementById('new-field-type').value;
+                    if (fieldType === RELATIONSHIP_FIELD_TYPE) {
+                        const targetId = document.getElementById('relationship-search-results').querySelector('.selected')?.dataset.contactId;
+                        Core.addRelationship(contactId, targetId, fieldName);
+                    } else {
+                        Core.addCustomField(contactId, fieldName, fieldType);
+                    }
+                    Utils.hideModal(DOM.addFieldModal);
+                }
+            },
+            handleContactModalClick: e => {
+                const contactId = window.location.hash.substring(1);
+
+                if (e.target.closest("#modal-delete-contact-btn")) return Core.deleteContact(contactId);
+                if (e.target.closest("#add-task-btn-modal")) return UI.showAddTaskModal();
+                if (e.target.closest("#log-activity-btn-modal")) return UI.showLogActivityModal();
+                if (e.target.closest("#add-field-btn-modal")) return UI.showAddFieldModal();
+
+                const actionEl = e.target.closest('[data-action]');
+                if (actionEl) {
+                    const action = actionEl.dataset.action;
+                    if (action === 'copy') return navigator.clipboard.writeText(actionEl.dataset.value).then(() => UI.showNotification("Copied!", "info", 1500));
+                    if (action === 'edit-task-date') {
+                        const taskId = actionEl.closest('li').dataset.taskId;
+                        const task = AppState.tasks.find(t => t.sparrow_task_id === taskId);
+                        actionEl.innerHTML = `<input type="date" class="inline-edit-input" value="${task.dueDate || ''}" data-task-id="${taskId}">`;
+                        actionEl.querySelector('input').focus();
+                        return;
+                    }
+
+                    const taskId = actionEl.closest("li[data-task-id]")?.dataset.taskId;
+                    if (taskId) {
+                        if (action === 'toggle-task') Core.updateTask(taskId, {status: AppState.tasks.find(t => t.sparrow_task_id === taskId).status === 'Completed' ? 'To-Do' : 'Completed'});
+                        if (action === 'delete-task') Core.deleteTask(taskId);
+                        return;
+                    }
+                    const activityId = actionEl.closest("li[data-activity-id]")?.dataset.activityId;
+                    if (activityId && action === 'delete-activity') return Core.deleteActivity(activityId);
+                }
+                
+                const fieldGroup = e.target.closest('.detail-field-group');
+                if (fieldGroup && !fieldGroup.querySelector('input, textarea')) {
+                    const fieldName = fieldGroup.dataset.fieldName;
+                    const fieldType = fieldGroup.dataset.fieldType;
+                    const contact = AppState.contacts.find(c => c.sparrow_contact_id === contactId);
+                    const originalValue = contact.fields[fieldName];
+
+                    if (fieldType === 'boolean') {
+                        const newValue = !(originalValue === true || String(originalValue).toLowerCase() === 'true');
+                        Core.updateContactField(contactId, fieldName, newValue, originalValue);
+                        UI.renderContactModal(contactId); // Re-render to show instant toggle
+                        return;
+                    }
+
+                    fieldGroup.querySelector('.detail-field-value').innerHTML = 
+                        `<input type="${fieldType === 'date' ? 'date' : 'text'}" class="inline-edit-input" value="${originalValue || ''}" data-original-value="${originalValue || ''}">`;
+                    fieldGroup.querySelector('.inline-edit-input').focus();
+                }
+
+                 const result = e.target.closest('.relationship-search-result');
+                if (result) {
+                    document.querySelectorAll('.relationship-search-result').forEach(el => el.classList.remove('selected'));
+                    result.classList.add('selected');
+                }
+            },
+            handleContactModalFocusOut: e => {
+                if (e.target.classList.contains("inline-edit-input")) {
+                    const input = e.target;
+                    // Handle task date edit
+                    if (input.dataset.taskId) {
+                        Core.updateTask(input.dataset.taskId, { dueDate: input.value });
+                        return; // Task updates re-render, so no need for manual DOM manipulation
+                    }
+                    // Handle contact field edit
+                    const valueContainer = input.parentElement;
+                    const fieldGroup = valueContainer.closest('.detail-field-group');
+                    const fieldName = fieldGroup.dataset.fieldName;
+                    const contactId = window.location.hash.substring(1);
+                    Core.updateContactField(contactId, fieldName, input.value, input.dataset.originalValue);
+                    // Re-render just the value to restore it
+                    const fieldDef = AppState.settings.fields.find(f => f.name === fieldName);
+                    const formattedValue = Utils.formatFieldValue(input.value, fieldDef.type);
+                    let contextualActions = `<button title="Copy" data-action="copy" data-value="${input.value}">📋</button>`;
+                    if (fieldDef.type === 'email' && input.value) contextualActions += `<a href="mailto:${input.value}" title="Email"><button>📧</button></a>`;
+                    if (fieldDef.type === 'phone' && input.value) contextualActions += `<a href="tel:${input.value}" title="Call"><button>📞</button></a>`;
+                    valueContainer.innerHTML = `<span class="value-text">${formattedValue}</span><div class="contextual-actions">${contextualActions}</div>`;
+                }
+            },
+            handleContactModalKeyDown: e => {
+                if (e.target.classList.contains("inline-edit-input")) {
+                    if (e.key === "Enter") e.target.blur();
+                    else if (e.key === "Escape") {
+                        const input = e.target;
+                        input.value = input.dataset.originalValue; // Revert change
+                        input.blur();
+                    }
+                }
+            },
+            handleContactModalInput: e => {
+                if (e.target.id === 'new-field-type') {
+                    document.getElementById('relationship-creator-ui').classList.toggle('hidden', e.target.value !== RELATIONSHIP_FIELD_TYPE);
+                } else if (e.target.id === 'relationship-search') {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const resultsContainer = document.getElementById('relationship-search-results');
+                    resultsContainer.innerHTML = '';
+                    if (searchTerm.length < 2) return;
+                    const currentContactId = window.location.hash.substring(1);
+                    const matches = AppState.contacts.filter(c => c.sparrow_contact_id !== currentContactId && Utils.getContactDisplayName(c).toLowerCase().includes(searchTerm));
+                    matches.slice(0, 5).forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = 'relationship-search-result';
+                        div.dataset.contactId = c.sparrow_contact_id;
+                        div.textContent = Utils.getContactDisplayName(c);
+                        resultsContainer.appendChild(div);
+                    });
+                }
+            }
+        };
+
+        function init() {
+            console.log(`${LOG_PREFIX} Initializing application...`);
+            AppState = {
+                contacts: [], tasks: [], activities: [], links: [], relationships: [],
+                settings: { fields: [], customActivityTypes: ["Phone Call", "SMS", "Email", "Meeting"], ghostMode: false },
+                ui: { isFsaSupported: false, fileHandle: null, unsavedChanges: false, currentFilter: "", renderedContactsCount: 0 }
+            };
+            DOM = {};
+
+            let preloadedData = null;
+            const dataScript = document.getElementById('sparrow-data');
+            if (dataScript && dataScript.textContent.trim().length > 2) {
+                try {
+                    preloadedData = JSON.parse(dataScript.textContent);
+                    console.log(`${LOG_PREFIX} Loaded data from embedded JSON script.`);
+                } catch(e) { console.error(`${LOG_PREFIX} Failed to parse embedded data.`, e); }
+            } else if (localStorage.getItem("sparrow-crm-state")) {
+                try {
+                    preloadedData = JSON.parse(localStorage.getItem("sparrow-crm-state"));
+                    console.log(`${LOG_PREFIX} Loaded data from localStorage cache.`);
+                } catch(e) { console.error(`${LOG_PREFIX} Failed to parse local storage data.`, e); }
+            }
+            if (preloadedData) {
+                AppState = { ...AppState, ...preloadedData, ui: AppState.ui }; // Merge preloaded data, but keep transient UI state
+                window.addEventListener('unload', () => {
+                    if (AppState.settings.ghostMode) {
+                        localStorage.removeItem("sparrow-crm-state");
+                    } else {
+                        const stateToCache = { ...AppState };
+                        delete stateToCache.ui;
+                        localStorage.setItem("sparrow-crm-state", JSON.stringify(stateToCache));
+                    }
+                });
+            }
+
+            Events.init();
+            AppState.ui.isFsaSupported = 'showOpenFilePicker' in window;
+            
+            if (AppState.contacts.length > 0) { UI.renderApp(); } 
+            else { UI.resetToWelcomeScreen(); }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.has("q")) {
+                const query = urlParams.get("q");
+                DOM.mainSearchInput.value = query;
+                UI.renderContactGrid();
+            }
+            
+            const hash = window.location.hash.substring(1);
+            if (hash && AppState.contacts.find(c => c.sparrow_contact_id === hash)) {
+                UI.renderContactModal(hash);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', init);
+    }());
+    </script>
+
+</body></html>
