@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparrow CRM</title>
+    <meta name="description" content="A free, private, offline-first CRM that lives in a single HTML file.">
+
+    <!-- STYLES -->
+    <style>
+        :root {
+            --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            --midnight-green: #13505b; --cerulean: #0c7489; --persian-orange: #d38b5d; --golden-brown: #99621e; --uranian-blue: #b8e1ff;
+            --bg-deep: var(--midnight-green); --bg-main: #1A6776; --bg-surface: #2a8ea1; --bg-inset: #104854;
+            --text-primary: #f0f8ff; --text-secondary: var(--uranian-blue); --text-tertiary: #92c1de;
+            --accent-primary: var(--persian-orange); --accent-primary-hover: #e6a079;
+            --border-color: #3b9eaf; --border-radius: 6px;
+            --shadow-color: rgba(0, 0, 0, 0.3); --shadow-md: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -2px var(--shadow-color);
+            --danger-color: #e53e3e; --danger-hover: #c53030; --success-color: #48bb78;
+        }
+        [v-cloak] { display: none; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; font-family: var(--font-family-sans); background-color: var(--bg-deep); color: var(--text-primary); font-size: 16px; line-height: 1.6; }
+        h1, h2, h3 { margin: 0 0 0.75em 0; line-height: 1.2; color: var(--text-secondary); }
+        a { color: var(--accent-primary); text-decoration: none; } a:hover { text-decoration: underline; }
+        input, select, textarea, button { font-family: inherit; font-size: 1rem; color: var(--text-primary); }
+        .hidden { display: none !important; }
+        #app-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+        header { background-color: var(--bg-deep); padding: 1rem 1.5rem; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; flex-wrap: wrap; gap: 1.5rem; box-shadow: var(--shadow-md); position: sticky; top: 0; z-index: 100; }
+        .logo-area { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-area h1 { font-size: 1.75rem; margin: 0; color: var(--text-primary); }
+        .search-area { flex-grow: 1; }
+        .search-bar { width: 100%; max-width: 400px; padding: 0.5rem 1rem; background-color: var(--bg-inset); border: 1px solid var(--border-color); border-radius: var(--border-radius); outline: none; transition: all 0.2s ease; }
+        .search-bar:focus { box-shadow: 0 0 0 3px var(--accent-primary-hover); border-color: var(--accent-primary); }
+        .actions-area { display: flex; gap: 0.75rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border: 1px solid transparent; border-radius: var(--border-radius); font-weight: 600; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+        .btn:disabled { background-color: #555 !important; border-color: #666 !important; color: #999 !important; cursor: not-allowed !important; opacity: 0.7; }
+        .btn-primary { background-color: var(--accent-primary); color: var(--text-primary); border-color: var(--accent-primary); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--accent-primary-hover); border-color: var(--accent-primary-hover); }
+        .btn-secondary { background-color: var(--bg-surface); color: var(--text-primary); border-color: var(--border-color); }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--bg-deep); }
+        #welcomeScreen { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; text-align: center; }
+        #welcomeScreen h1 { font-size: 2.5rem; } #welcomeScreen p { font-size: 1.2rem; color: var(--text-tertiary); max-width: 600px; margin-bottom: 2rem; }
+        .drop-zone { border: 3px dashed var(--border-color); border-radius: 1rem; padding: 3rem; cursor: pointer; transition: all 0.2s ease; }
+        .drop-zone.drag-over { background-color: var(--bg-inset); border-color: var(--accent-primary); }
+        #contactGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; padding: 1.5rem; }
+        .contact-card { background-color: var(--bg-surface); border-radius: var(--border-radius); padding: 1.25rem; }
+        .contact-card h3 { color: var(--text-primary); margin-bottom: 0.75rem; font-size: 1.25rem; }
+        .contact-card-field { font-size: 0.9rem; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-card-field strong { color: var(--text-secondary); }
+        #save-reminder { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--golden-brown); color: var(--text-primary); padding: 1rem; text-align: center; z-index: 500; display: flex; justify-content: center; align-items: center; gap: 1rem; transform: translateY(100%); transition: transform 0.3s ease-in-out; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        #save-reminder.visible { transform: translateY(0); }
+        #notification-container { position: fixed; top: 85px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .notification { padding: 15px 20px; border-radius: var(--border-radius); box-shadow: var(--shadow-md); color: var(--text-primary); opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .notification.visible { opacity: 1; transform: translateX(0); }
+        .notification.info { background-color: var(--bg-surface); }
+        .notification.success { background-color: var(--success-color); }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div id="notification-container">
+            <div v-for="notification in ui.notifications" :key="notification.id" :class="['notification', notification.type, { 'visible': notification.visible }]">
+                {{ notification.message }}
+            </div>
+        </div>
+
+        <div id="app-wrapper">
+            <div id="welcomeScreen" v-if="!appState.contacts.length">
+                <h1>Welcome to Sparrow CRM</h1>
+                <p>Your private, portable, and powerful offline CRM. Get started by importing your contacts from a CSV file.</p>
+                <div class="drop-zone" @dragover.prevent="ui.dragOver = true" @dragleave.prevent="ui.dragOver = false" @drop.prevent="handleDrop" :class="{ 'drag-over': ui.dragOver }">
+                    <button class="btn btn-primary" @click="triggerFileUpload">Select or Drop CSV File</button>
+                    <input type="file" ref="csvFileInput" @change="handleFileSelect" accept=".csv" style="display: none;">
+                </div>
+            </div>
+
+            <div id="appScreen" v-if="appState.contacts.length > 0">
+                <header>
+                    <div class="logo-area"><h1>Sparrow CRM</h1></div>
+                </header>
+                <main>
+                    <div id="contactGrid">
+                        <div class="contact-card" v-for="contact in appState.contacts" :key="contact.sparrow_contact_id">
+                            <h3>{{ getContactDisplayName(contact) }}</h3>
+                            <div v-for="field in getVisibleFields(contact)" class="contact-card-field">
+                               <strong>{{ field.name }}:</strong> {{ field.value }}
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <div id="save-reminder" :class="{ 'visible': appState.unsavedChanges }">
+            <span id="save-reminder-text">{{ saveReminderText }}</span>
+            <button id="save-now-btn" class="btn btn-primary" @click="saveData">{{ saveButtonText }}</button>
+        </div>
+    </div>
+
+    <script id="sparrow-data" type="application/json"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+    (function() {
+        "use strict";
+        const LOG_PREFIX = '[SparrowCRM]';
+        const CONTACTS_PER_PAGE = 50;
+
+        const { createApp, reactive, computed, onMounted, watch } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    appState: {
+                        contacts: [],
+                        settings: { fields: [] },
+                        unsavedChanges: false,
+                        fileHandle: null,
+                    },
+                    ui: {
+                        isFsaSupported: false,
+                        dragOver: false,
+                        notifications: [],
+                    }
+                }
+            },
+            computed: {
+                saveReminderText() {
+                    if (!this.appState.unsavedChanges) return '';
+                    if (this.ui.isFsaSupported && !this.appState.fileHandle) {
+                        return "To enable one-click saving, grant permission to edit this file.";
+                    }
+                    if (!this.ui.isFsaSupported) {
+                        return "You have unsaved changes. Download a new copy to save.";
+                    }
+                    return "You have unsaved changes.";
+                },
+                saveButtonText() {
+                    if (this.ui.isFsaSupported && !this.appState.fileHandle) {
+                        return "Grant Permission & Save";
+                    }
+                    if (!this.ui.isFsaSupported) {
+                        return "Download & Save";
+                    }
+                    return "Save Now";
+                }
+            },
+            methods: {
+                getContactDisplayName(contact) {
+                    return contact.fields['First Name'] || contact.fields['Name'] || `Contact ${contact.sparrow_contact_id.substring(0,4)}`;
+                },
+                getVisibleFields(contact) {
+                    return Object.entries(contact.fields)
+                        .map(([name, value]) => ({name, value}))
+                        .filter(field => field.value); // <-- This was the bug
+                },
+                triggerFileUpload() {
+                    console.log(`${LOG_PREFIX} Triggering file input click.`);
+                    this.$refs.csvFileInput.click();
+                },
+                handleDrop(event) {
+                    this.ui.dragOver = false;
+                    const file = event.dataTransfer.files[0];
+                    if (file && file.type === "text/csv") {
+                        this.readFile(file);
+                    } else {
+                        alert("Please drop a valid .csv file.");
+                    }
+                },
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.readFile(file);
+                    }
+                },
+                readFile(file) {
+                    console.log(`${LOG_PREFIX} Reading file: ${file.name}`);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = this.parseCSV(e.target.result);
+                            if (data.length > 0) {
+                                this.processCSVData(data);
+                            } else {
+                                this.showNotification("CSV file is empty or could not be parsed.", "danger");
+                            }
+                        } catch (error) {
+                            console.error(`${LOG_PREFIX} Error processing file:`, error);
+                            this.showNotification(`An error occurred: ${error.message}`, "danger");
+                        }
+                    };
+                    reader.readAsText(file);
+                },
+                parseCSV(text) {
+                    console.log(`${LOG_PREFIX} Parsing CSV text.`);
+                    const result=[],lines=text.trim().split(/\r\n|\n/),headers=lines[0].split(",").map(h=>h.trim().replace(/"/g,""));
+                    for(let i=1;i<lines.length;i++){const line=lines[i];if(!line.trim())continue;const values=[];let currentVal="",inQuotes=!1;for(let char of line){if(char==='"')inQuotes=!inQuotes;else if(char===","&&!inQuotes)values.push(currentVal.trim()),currentVal="";else currentVal+=char}values.push(currentVal.trim());if(values.every(v=>v==="")){console.log(`${LOG_PREFIX} Skipping empty row at line ${i+1}.`);continue}if(values.length===headers.length){const obj={};for(let j=0;j<headers.length;j++)obj[headers[j]]=values[j].replace(/^"|"$/g,"").replace(/""/g,'"');result.push(obj)}else console.warn(`${LOG_PREFIX} Mismatched row length at line ${i+1}. Skipping.`)}
+                    console.log(`${LOG_PREFIX} Parsed ${result.length} rows.`);return result;
+                },
+                processCSVData(data) {
+                    console.log("[SparrowCRM] Processing CSV data...");
+                    const newHeaders = Object.keys(data[0]);
+                    this.appState.settings.fields = newHeaders.map((header, index) => ({
+                        name: header,
+                        type: 'text',
+                        visible: true,
+                        order: index
+                    }));
+                    this.appState.contacts = data.map(row => ({
+                        sparrow_contact_id: crypto.randomUUID(),
+                        tags: [],
+                        fields: row
+                    }));
+                    console.log("[SparrowCRM] Contacts created.");
+                    this.appState.unsavedChanges = true;
+                },
+                async saveData() {
+                    console.log(`${LOG_PREFIX} Saving data...`);
+                    const savingNotifId = this.showNotification('Saving...', 'info', 0);
+                    try {
+                        if (this.ui.isFsaSupported) {
+                            if (!this.appState.fileHandle) { this.appState.fileHandle = await window.showSaveFilePicker({ types: [{ description: 'Sparrow CRM File', accept: {'text/html': ['.html']} }] }); }
+                            const writable = await this.appState.fileHandle.createWritable(); await writable.write(this.generateHtmlToSave()); await writable.close();
+                            this.appState.unsavedChanges = false;
+                            this.showNotification('File saved successfully.', 'success');
+                        } else {
+                            const blob = new Blob([this.generateHtmlToSave()],{type:'text/html'}), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sparrow-crm-data.html'; a.click(); a.remove(); URL.revokeObjectURL(a.href);
+                            this.appState.unsavedChanges = false;
+                            this.showNotification('File downloaded successfully.', 'success');
+                        }
+                    } catch (err) {
+                        if (err.name !== 'AbortError') { console.error(`${LOG_PREFIX} Error saving file:`, err); this.showNotification(`Error saving file: ${err.message}`, 'danger'); }
+                        else { this.showNotification('Save cancelled.', 'info'); }
+                    } finally {
+                        this.hideNotification(savingNotifId);
+                    }
+                },
+                generateHtmlToSave() {
+                    const docClone = document.cloneNode(true);
+                    const notificationContainerClone = docClone.getElementById('notification-container');
+                    if (notificationContainerClone) { notificationContainerClone.innerHTML = ''; }
+                    const dataToSave = { ...this.appState };
+                    delete dataToSave.fileHandle;
+                    delete dataToSave.ui; // We should not save UI state
+                    const jsonString = JSON.stringify(dataToSave, null, 2);
+                    const scriptTagClone = docClone.getElementById('sparrow-data');
+                    scriptTagClone.textContent = jsonString;
+                    return `<!DOCTYPE html>\n` + docClone.documentElement.outerHTML;
+                },
+                showNotification(message, type = 'info', duration = 3000) {
+                    const notifId = crypto.randomUUID();
+                    this.ui.notifications.push({ id: notifId, message, type, visible: false });
+                    setTimeout(() => {
+                        const notif = this.ui.notifications.find(n => n.id === notifId);
+                        if (notif) notif.visible = true;
+                    }, 10);
+                    if (duration > 0) {
+                        setTimeout(() => this.hideNotification(notifId), duration);
+                    }
+                    return notifId;
+                },
+                hideNotification(notifId) {
+                    const notif = this.ui.notifications.find(n => n.id === notifId);
+                    if(notif) {
+                        notif.visible = false;
+                        setTimeout(() => {
+                            this.ui.notifications = this.ui.notifications.filter(n => n.id !== notifId);
+                        }, 500); // Wait for fade out transition
+                    }
+                }
+            },
+            mounted() {
+                console.log(`${LOG_PREFIX} Vue App Mounted. Initializing...`);
+                this.ui.isFsaSupported = 'showOpenFilePicker' in window;
+                let loadedState = null;
+                const dataScript = document.getElementById('sparrow-data');
+                if (dataScript && dataScript.textContent.trim().length > 2) {
+                    try {
+                        loadedState = JSON.parse(dataScript.textContent);
+                        console.log(`[SparrowCRM] Found pre-loaded data in HTML file.`);
+                    } catch (e) {
+                        console.error(`[SparrowCRM] Failed to parse pre-loaded data.`, e);
+                    }
+                }
+                if (loadedState) {
+                    // Deep merge loaded state into AppState
+                    for (const key in loadedState) {
+                        if (this.appState.hasOwnProperty(key)) {
+                            Object.assign(this.appState[key], loadedState[key]);
+                        }
+                    }
+                }
+                
+                // Add unsaved changes warning
+                 window.addEventListener('beforeunload', e => {
+                    if (this.appState.unsavedChanges) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                });
+            }
+        }).mount('#app');
+    }());
+    </script>
+</body>
+</html>
