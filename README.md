@@ -12,7 +12,7 @@ Our vision is to empower users with full control over their own data, offering a
 
 ## ➡️ Download the Latest Version
 
-You can download the ready-to-use `sparrow-crm.html` file directly from our latest release.
+You can download the ready-to-use `Sparrow CRM v1.0.0.html` file directly from our latest release.
 
 **[Download Sparrow CRM v1.0.0 (MVP) Here](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/MVP/Sparrow.CRM.v1.0.0.html)**
 
