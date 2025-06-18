@@ -1,8 +1,8 @@
 # Sparrow CRM 🐦
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/your-username/your-repo/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)]([https://github.com/your-username/your-repo/releases/latest](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases))
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tech](https://img.shields.io/badge/tech-Vanilla_JS-yellow)](https://github.com/your-username/your-repo)
+[![Tech](https://img.shields.io/badge/tech-Vanilla_JS-yellow)]([https://github.com/your-username/your-repo](https://github.com/Spuds0588/Sparrow-Offline-CRM))
 
 Sparrow CRM is a private, portable, and powerful "offline-first" Customer Relationship Management application. It exists as a single HTML file that runs locally in your web browser, requiring no installation, no server, and no internet connection.
 
@@ -14,9 +14,7 @@ Our vision is to empower users with full control over their own data, offering a
 
 You can download the ready-to-use `sparrow-crm.html` file directly from our latest release.
 
-**[Download Sparrow CRM v1.0.0 (MVP) Here](YOUR_DOWNLOAD_LINK_HERE)**
-
-*(**Instruction:** Replace `YOUR_DOWNLOAD_LINK_HERE` with the direct link to the `sparrow_offline_crm(v24.018).html` file in your GitHub releases.)*
+**[Download Sparrow CRM v1.0.0 (MVP) Here](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/MVP/Sparrow.CRM.v1.0.0.html)**
 
 ---
 
@@ -54,7 +52,7 @@ This version includes all the core functionality you need to manage your contact
 
 Using Sparrow CRM is as easy as 1-2-3:
 
-1.  **Download:** [Download the `sparrow-crm.html` file](YOUR_DOWNLOAD_LINK_HERE) from the link above.
+1.  **Download:** [Download the `sparrow-crm.html` file](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/MVP/Sparrow.CRM.v1.0.0.html) from the link above.
 2.  **Open:** Open the downloaded file in a modern web browser like Chrome, Firefox, Edge, or Safari.
 3.  **Import:** Drag and drop your first contacts CSV file onto the welcome screen, or click the button to select it.
 
