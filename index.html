@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparrow CRM - Your Private, Portable, Offline CRM</title>
+    
+    <!-- Bulma CSS Framework -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+    
+    <!-- Animate On Scroll (AOS) Library CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Sparrow CRM Branding & Custom Styles */
+        :root {
+            --sparrow-midnight-green: #13505b;
+            --sparrow-cerulean: #0c7489;
+            --sparrow-persian-orange: #d38b5d;
+            --sparrow-persian-orange-hover: #e6a079;
+            --sparrow-text-primary: #ffffff;
+            --sparrow-text-secondary: #e0f0ff; /* Adjusted for better readability */
+            --sparrow-light-bg: #f7f9fa;
+            --sparrow-success: #2ebc4f;
+            --sparrow-danger: #ff3860;
+            --hero-gradient: linear-gradient(135deg, var(--sparrow-cerulean) 0%, #15b39a 100%);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b2d34; /* Dark base for between sections */
+        }
+
+        /* Hero Section */
+        .hero.is-primary {
+            background-image: var(--hero-gradient);
+            color: var(--sparrow-text-primary);
+        }
+        .hero.is-primary .title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--sparrow-text-primary);
+        }
+        .hero.is-primary .subtitle {
+            font-size: 1.4rem;
+            color: var(--sparrow-text-secondary);
+            max-width: 720px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .hero-logo svg {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 1rem;
+        }
+        .button.is-accent {
+            background-color: var(--sparrow-persian-orange);
+            border-color: transparent;
+            color: var(--sparrow-text-primary);
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .button.is-accent:hover {
+            background-color: var(--sparrow-persian-orange-hover);
+            color: var(--sparrow-text-primary);
+        }
+
+        /* Dark & Light Section Theming */
+        .section.is-dark {
+            background-color: var(--sparrow-midnight-green);
+        }
+        .section.is-light-themed {
+            background-color: var(--sparrow-light-bg);
+        }
+        .section-heading {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            font-weight: 600;
+        }
+        .section.is-dark .section-heading {
+            color: var(--sparrow-text-primary);
+        }
+        .section.is-light-themed .section-heading {
+             color: var(--sparrow-midnight-green);
+        }
+        .section.is-dark .subtitle, .section.is-dark p, .section.is-dark li {
+            color: var(--sparrow-text-secondary);
+        }
+        .section.is-dark .box {
+            background-color: #1a6776;
+            border-radius: 12px;
+        }
+        .section.is-dark .box .title {
+            color: var(--sparrow-text-primary);
+        }
+        
+        /* Specific Component Styles */
+        #problem .pain-point-title { color: var(--sparrow-danger); font-weight: 600; }
+        #problem .desire-point-title { color: var(--sparrow-success); font-weight: 600; }
+        #problem .icon { vertical-align: middle; }
+
+        .dashboard-screenshot {
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            max-width: 100%;
+            height: auto; /* Ensures aspect ratio is maintained */
+        }
+        .image-container {
+             text-align: center;
+        }
+
+        #process .box {
+            background-color: #ffffff;
+            height: 100%;
+            border-radius: 12px;
+        }
+        #process .box h3.title {
+            color: var(--sparrow-cerulean);
+        }
+        #process .box p {
+            color: var(--sparrow-cerulean); /* Text color fix */
+        }
+
+        #whats-included .box {
+             height: 100%;
+             background-color: #1a6776;
+             border-radius: 12px;
+        }
+        #whats-included .box h3.title .icon {
+            color: var(--sparrow-text-secondary);
+        }
+
+        .guarantee-box {
+            border-left: 5px solid var(--sparrow-success);
+            background-color: #f6fef9;
+            border-radius: 8px;
+        }
+
+        .button.is-github {
+            background-color: #fff;
+            border-color: #dbdbdb;
+            color: #363636;
+        }
+        .button.is-github:hover {
+            border-color: #b5b5b5;
+        }
+        
+        .footer {
+            background-color: #0b2d34;
+            color: var(--sparrow-text-secondary);
+        }
+        .footer a {
+            color: var(--sparrow-text-primary);
+        }
+
+        /* Mobile Responsiveness */
+        @media screen and (max-width: 768px) {
+            .hero.is-medium .hero-body {
+                padding-bottom: 3rem;
+                padding-top: 3rem;
+            }
+            .hero.is-primary .title {
+                font-size: 2.5rem;
+            }
+            .hero.is-primary .subtitle {
+                font-size: 1.2rem;
+            }
+            .section-heading {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+            }
+            #problem .columns .column:first-child {
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+    <link id="favicon" rel="icon" type="image/svg+xml" href="">
+</head>
+<body>
+    <section class="hero is-primary is-bold is-medium">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="hero-logo" data-aos="zoom-in">
+                    <!-- Embedded Sparrow Logo SVG -->
+                    <svg width="70" height="70" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="#ffffff"><g id="SVGRepo_iconCarrier" style="" transform="matrix(1.92623, 0, 0, 1.927014, -60.113792, -58.564831)"><g data-name="Bird Nest" id="Bird_Nest"><path class="cls-1" d="M64,32A32,32,0,0,0,32,64a31.51,31.51,0,0,0,.61,6.18s0,0,0,0,0,0,0,.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34,1,0,.13.08.25.13.38.15.39.3.78.46,1.16l.08.18a32,32,0,0,0,5.74,9l.06.06c.32.35.64.69,1,1l.1.1c.33.33.66.65,1,1l.09.08a29.29,29.29,0,0,0,2.28,1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34,1,.49l.16.08a32.52,32.52,0,0,0,4.87,1.78l.18,0,1,.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58,0c.51,0,1,0,1.53,0s1,0,1.54,0l.57,0,.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1,1-.25.18,0a31.57,31.57,0,0,0,4.88-1.78l.15-.07,1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88,28.88,0,0,0,2.27-1.87l.12-.11c.33-.3.66-.62,1-.93l.11-.12c.33-.33.64-.66,1-1l.08-.08q.49-.54,1-1.11h0a31.78,31.78,0,0,0,4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13,0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84,0,0,0,0,0-.06h0A32,32,0,0,0,64,32Zm0,2A30,30,0,0,1,94,64a30.58,30.58,0,0,1-.42,5H65V67.55l18.35.7h0A1,1,0,0,0,84,66.49L78.81,62h.8a1,1,0,1,0,0-2H76.48l-3.73-3.2a14.35,14.35,0,0,0-6.22-3.93l-7.28-2.28a5.48,5.48,0,0,0-10.08-.48,1.27,1.27,0,0,0-.27.18l-5,5a1,1,0,0,0-.21,1.09,1,1,0,0,0,.92.62h5.06l3.38,5.33a13,13,0,0,0,9.84,5.14H63V69H34.47A29.51,29.51,0,0,1,34,64,30,30,0,0,1,64,34ZM93.18,71.12c-.18.73-.38,1.45-.61,2.16l-.15.44c-.23.68-.48,1.34-.76,2-.06.15-.14.3-.21.45-.23.53-.48,1-.74,1.55-.09.18-.18.37-.28.56-.3.55-.62,1.08-1,1.61l-.43.67c-.34.51-.69,1-1.06,1.49l-.46.59q-.51.65-1,1.26L86,84.4c-.41.44-.82.86-1.25,1.27l-.4.38c-.51.47-1,.91-1.56,1.34l-.35.27c-.58.45-1.17.89-1.78,1.3l-.08.05c-.67.44-1.35.85-2,1.24h0c-.7.38-1.41.74-2.14,1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66,30.66,0,0,1-4.68,1.23l-.28,0c-.75.12-1.5.22-2.27.29l-.36,0c-.78.06-1.57.1-2.36.1s-1.58,0-2.36-.1l-.36,0c-.76-.07-1.52-.17-2.27-.29l-.28,0A30.53,30.53,0,0,1,54.1,92.3l0,0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08,82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67,53.35s0,.09,0,.14a3.38,3.38,0,0,0,.08.34,6.13,6.13,0,0,0,.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77,3.77,0,0,1,.11.87,3.5,3.5,0,0,1-5.72,2.71L51.66,55a3.4,3.4,0,0,1-1-2.49,3.23,3.23,0,0,1,.19-1.13,3.5,3.5,0,0,1,6.7.26ZM53,57.86l.28.06a5.14,5.14,0,0,0,.88.08,5.91,5.91,0,0,0,1-.1h0a5.18,5.18,0,0,0,1-.28l.07,0a5.92,5.92,0,0,0,.83-.43l.08,0a5.82,5.82,0,0,0,.72-.57l.09-.08a6.39,6.39,0,0,0,.59-.68l.08-.1a6.06,6.06,0,0,0,.45-.78l.06-.12a5.08,5.08,0,0,0,.31-.85l0-.14a5.51,5.51,0,0,0,.14-.92s0,0,0-.07l6.33,2a12.33,12.33,0,0,1,5.38,3.42l.09.09,2,1.72H66.66a6.26,6.26,0,0,1-5.2-2.78l-.26-.4a1,1,0,0,0-1.39-.27,1,1,0,0,0-.27,1.38l.26.4A8.22,8.22,0,0,0,66.66,62h9.08l4.82,4.14L63,65.47a11,11,0,0,1-8.28-4.28l-2.17-3.42C52.66,57.81,52.81,57.83,53,57.86Z"></path></g></g></svg>
+                </div>
+                <h1 class="title" data-aos="fade-up">
+                    Take Back Control of Your Customer Data.
+                </h1>
+                <h2 class="subtitle" data-aos="fade-up" data-aos-delay="100">
+                    Sparrow is a free, open-source CRM that lives in a single HTML file.
+                    No clouds, no servers, no subscriptions. Ever.
+                </h2>
+                <div class="mt-5" data-aos="fade-up" data-aos-delay="200">
+                    <a href="https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/MVP/Sparrow.CRM.v1.0.0.html" class="button is-accent is-large is-rounded">Download Sparrow CRM v1.0.0 (It's Free!)</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="problem" class="section is-dark">
+        <div class="container">
+            <h2 class="title is-2 section-heading has-text-centered" data-aos="fade-up">Tired of Expensive, Intrusive CRMs?</h2>
+            <div class="columns is-centered">
+                <div class="column is-10">
+                    <div class="box p-6" data-aos="fade-up" data-aos-delay="100">
+                        <p class="is-size-5 mb-5 has-text-left">Modern SaaS CRMs are powerful, but they come at a cost—not just in dollars, but in privacy and complexity. Your customer data is your most valuable asset, yet it's often stored on someone else's servers, analyzed by their AI, and held hostage by monthly fees. If you're a freelancer, a small business owner, or just someone who values privacy, you know the struggle.</p>
+                        <div class="columns is-multiline is-vcentered">
+                            <div class="column is-half">
+                                <h4 class="title is-4 pain-point-title">The Pains</h4>
+                                <ul class="ml-4 is-size-5 has-text-left">
+                                    <li><span class="icon mr-2"><i class="fas fa-wallet"></i></span>Endless monthly subscription fees.</li>
+                                    <li><span class="icon mr-2"><i class="fas fa-user-secret"></i></span>Your private data analyzed by third parties.</li>
+                                    <li><span class="icon mr-2"><i class="fas fa-lock"></i></span>Vendor lock-in making it hard to leave.</li>
+                                    <li><span class="icon mr-2"><i class="fas fa-wifi-slash"></i></span>Useless without an internet connection.</li>
+                                </ul>
+                            </div>
+                            <div class="column is-half">
+                                <h4 class="title is-4 desire-point-title">Your Desires</h4>
+                                <ul class="ml-4 is-size-5 has-text-left">
+                                    <li><span class="icon mr-2"><i class="fas fa-hand-holding-usd"></i></span>A powerful tool that's completely free.</li>
+                                    <li><span class="icon mr-2"><i class="fas fa-file-alt"></i></span>True ownership and control of your data.</li>
+                                    <li><span class="icon mr-2"><i class="fas fa-hdd"></i></span>Simple, portable, and easy to back up.</li>
+                                    <li><span class="icon mr-2"><i class="fas fa-plane-departure"></i></span>Works anywhere, anytime, online or off.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="solution" class="section is-dark">
+        <div class="container has-text-centered">
+            <h2 class="title is-2 section-heading" data-aos="fade-up">Introducing Sparrow CRM: The Simple, Secure Alternative</h2>
+            <p class="is-size-5 mb-6 container" style="max-width: 800px;" data-aos="fade-up" data-aos-delay="100">Sparrow CRM isn't a service; it's a file. The entire application, along with all your data, is contained within a single `sparrow-crm.html` file on your computer. It uses your browser's engine to run, but your data never leaves the file. This provides the ultimate in privacy, portability, and peace of mind.</p>
+            <div class="image-container" data-aos="fade-up" data-aos-delay="200">
+                 <img class="dashboard-screenshot" src="https://raw.githubusercontent.com/Spuds0588/Sparrow-Offline-CRM/main/Assets/20250618_Dashboard_Screenshot.png" alt="Sparrow CRM Dashboard Screenshot">
+            </div>
+        </div>
+    </section>
+
+    <section id="process" class="section is-light-themed">
+        <div class="container has-text-centered">
+            <h2 class="title is-2 section-heading" data-aos="fade-up">Get Started in 60 Seconds</h2>
+            <div class="columns is-multiline is-centered">
+                <div class="column is-one-third" data-aos="fade-up" data-aos-delay="100">
+                    <div class="box p-5">
+                        <h3 class="title is-4">Step 1: Download</h3>
+                        <p>Click the download link and save the single `sparrow-crm.html` file anywhere on your computer.</p>
+                    </div>
+                </div>
+                <div class="column is-one-third" data-aos="fade-up" data-aos-delay="200">
+                    <div class="box p-5">
+                        <h3 class="title is-4">Step 2: Open</h3>
+                        <p>Open the file in your favorite web browser (like Chrome, Firefox, or Edge). No installation needed.</p>
+                    </div>
+                </div>
+                <div class="column is-one-third" data-aos="fade-up" data-aos-delay="300">
+                    <div class="box p-5">
+                        <h3 class="title is-4">Step 3: Import</h3>
+                        <p>Drag and drop a CSV of your contacts onto the welcome screen. That's it! You're up and running.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="whats-included" class="section is-dark">
+        <div class="container has-text-centered">
+            <h2 class="title is-2 section-heading" data-aos="fade-up">Everything You Need, Nothing You Don't</h2>
+            <div class="columns is-multiline is-centered">
+                <div class="column is-one-third" data-aos="fade-up">
+                    <div class="box p-5">
+                        <h3 class="title is-5"><span class="icon is-medium mr-3"><i class="fas fa-user-shield"></i></span>Total Data Privacy</h3>
+                        <p>Your data is stored inside the HTML file itself. It's never sent anywhere, period.</p>
+                    </div>
+                </div>
+                <div class="column is-one-third" data-aos="fade-up" data-aos-delay="100">
+                    <div class="box p-5">
+                        <h3 class="title is-5"><span class="icon is-medium mr-3"><i class="fas fa-suitcase-rolling"></i></span>Complete Portability</h3>
+                        <p>Your entire CRM is one file. Email it, put it on a USB, or back it up to any cloud storage.</p>
+                    </div>
+                </div>
+                <div class="column is-one-third" data-aos="fade-up" data-aos-delay="200">
+                    <div class="box p-5">
+                        <h3 class="title is-5"><span class="icon is-medium mr-3"><i class="fas fa-sliders"></i></span>Full Customization</h3>
+                        <p>Create, rename, and reorder your data fields into sections that make sense for you.</p>
+                    </div>
+                </div>
+                <div class="column is-one-third" data-aos="fade-up">
+                    <div class="box p-5">
+                        <h3 class="title is-5"><span class="icon is-medium mr-3"><i class="fas fa-tasks"></i></span>Powerful Productivity Tools</h3>
+                        <p>Create tasks with due dates, log activities, and link contacts to track relationships.</p>
+                    </div>
+                </div>
+                <div class="column is-one-third" data-aos="fade-up" data-aos-delay="100">
+                    <div class="box p-5">
+                        <h3 class="title is-5"><span class="icon is-medium mr-3"><i class="fas fa-file-import"></i></span>Intelligent CSV Import</h3>
+                        <p>Import new contacts or smartly update existing ones without losing data.</p>
+                    </div>
+                </div>
+                 <div class="column is-one-third" data-aos="fade-up" data-aos-delay="200">
+                    <div class="box p-5">
+                        <h3 class="title is-5"><span class="icon is-medium mr-3"><i class="fab fa-github"></i></span>Free & Open Source</h3>
+                        <p>No subscriptions, no ads. The code is public on GitHub for anyone to inspect or audit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="guarantee" class="section is-light-themed">
+        <div class="container has-text-centered">
+            <h2 class="title is-2 section-heading" data-aos="fade-up">Our Forever-Free & Open-Source Guarantee</h2>
+            <div class="columns is-centered" data-aos="fade-up" data-aos-delay="100">
+                <div class="column is-two-thirds">
+                    <div class="notification guarantee-box p-5">
+                        <p class="is-size-5 has-text-dark">Sparrow CRM is and always will be free to use. Our commitment is to provide a powerful, private tool for everyone. As an open-source project, the code is publicly available for you to inspect and verify. You are always in control.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="call-to-action" class="section is-light-themed">
+        <div class="container has-text-centered">
+            <h2 class="title is-2 section-heading" data-aos="fade-up">Ready to Own Your CRM?</h2>
+            <p class="is-size-5 mb-5" data-aos="fade-up" data-aos-delay="100">Stop renting your CRM and start owning it. Click below to download the file and get started in seconds.</p>
+
+            <div class="buttons is-centered" data-aos="fade-up" data-aos-delay="200">
+                 <a href="https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/MVP/Sparrow.CRM.v1.0.0.html" class="button is-accent is-large is-rounded">
+                    <span class="icon is-medium">
+                        <i class="fas fa-download"></i>
+                    </span>
+                    <span>Download for Free</span>
+                </a>
+                 <a href="https://github.com/Spuds0588/Sparrow-Offline-CRM" target="_blank" rel="noopener noreferrer" class="button is-github is-large is-rounded">
+                    <span class="icon is-medium">
+                        <i class="fab fa-github"></i>
+                    </span>
+                    <span>View on GitHub</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>&copy; 2024 Sparrow CRM. All rights reserved.</p>
+            <div class="level is-mobile is-centered">
+                <div class="level-item">
+                    <a href="https://github.com/Spuds0588/Sparrow-Offline-CRM/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a>
+                </div>
+                <div class="level-item">
+                    <a href="https://github.com/Spuds0588/Sparrow-Offline-CRM" target="_blank" rel="noopener noreferrer">Source Code</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- AOS JavaScript -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize Animate On Scroll
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 50, // Start animation a bit early
+        });
+        
+        // Dynamically set favicon from embedded SVG
+        document.addEventListener('DOMContentLoaded', function() {
+            const faviconLink = document.getElementById('favicon');
+            const sparrowSvgIcon = `<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="#13505b"><g id="SVGRepo_iconCarrier" style="" transform="matrix(1.92623, 0, 0, 1.927014, -60.113792, -58.564831)"><g data-name="Bird Nest" id="Bird_Nest"><path class="cls-1" d="M64,32A32,32,0,0,0,32,64a31.51,31.51,0,0,0,.61,6.18s0,0,0,0,0,0,0,.07c.05.26.11.52.17.78s.11.49.17.73.11.43.17.65.16.57.25.85.1.35.16.52c.11.33.22.66.34,1,0,.13.08.25.13.38.15.39.3.78.46,1.16l.08.18a32,32,0,0,0,5.74,9l.06.06c.32.35.64.69,1,1l.1.1c.33.33.66.65,1,1l.09.08a29.29,29.29,0,0,0,2.28,1.89l.53.38c.2.15.4.3.61.44l.72.47.45.29.82.49.37.22.91.49.29.15c.33.17.67.34,1,.49l.16.08a32.52,32.52,0,0,0,4.87,1.78l.18,0,1,.25.46.1c.29.07.59.13.89.18l.61.11.81.13.74.09.73.08.92.07.58,0c.51,0,1,0,1.53,0s1,0,1.54,0l.57,0,.93-.07.72-.08.74-.09.82-.13.6-.11q.45-.07.9-.18l.45-.1,1-.25.18,0a31.57,31.57,0,0,0,4.88-1.78l.15-.07,1-.5.28-.15c.31-.16.61-.32.92-.5l.36-.2.83-.5.43-.28c.25-.16.5-.32.74-.49l.57-.41c.19-.13.39-.26.57-.41a28.88,28.88,0,0,0,2.27-1.87l.12-.11c.33-.3.66-.62,1-.93l.11-.12c.33-.33.64-.66,1-1l.08-.08q.49-.54,1-1.11h0a31.78,31.78,0,0,0,4.76-7.82l.09-.22c.16-.38.3-.75.45-1.13,0-.14.1-.27.14-.41.12-.31.22-.63.33-1s.12-.37.17-.56.16-.54.23-.81.13-.46.19-.69l.15-.66c.06-.28.13-.56.18-.84,0,0,0,0,0-.06h0A32,32,0,0,0,64,32Zm0,2A30,30,0,0,1,94,64a30.58,30.58,0,0,1-.42,5H65V67.55l18.35.7h0A1,1,0,0,0,84,66.49L78.81,62h.8a1,1,0,1,0,0-2H76.48l-3.73-3.2a14.35,14.35,0,0,0-6.22-3.93l-7.28-2.28a5.48,5.48,0,0,0-10.08-.48,1.27,1.27,0,0,0-.27.18l-5,5a1,1,0,0,0-.21,1.09,1,1,0,0,0,.92.62h5.06l3.38,5.33a13,13,0,0,0,9.84,5.14H63V69H34.47A29.51,29.51,0,0,1,34,64,30,30,0,0,1,64,34ZM93.18,71.12c-.18.73-.38,1.45-.61,2.16l-.15.44c-.23.68-.48,1.34-.76,2-.06.15-.14.3-.21.45-.23.53-.48,1-.74,1.55-.09.18-.18.37-.28.56-.3.55-.62,1.08-1,1.61l-.43.67c-.34.51-.69,1-1.06,1.49l-.46.59q-.51.65-1,1.26L86,84.4c-.41.44-.82.86-1.25,1.27l-.4.38c-.51.47-1,.91-1.56,1.34l-.35.27c-.58.45-1.17.89-1.78,1.3l-.08.05c-.67.44-1.35.85-2,1.24h0c-.7.38-1.41.74-2.14,1.07l-.13.06c-.73.33-1.48.63-2.23.9h0a30.66,30.66,0,0,1-4.68,1.23l-.28,0c-.75.12-1.5.22-2.27.29l-.36,0c-.78.06-1.57.1-2.36.1s-1.58,0-2.36-.1l-.36,0c-.76-.07-1.52-.17-2.27-.29l-.28,0A30.53,30.53,0,0,1,54.1,92.3l0,0c-.76-.26-1.5-.56-2.23-.89l-.14-.06c-.73-.33-1.44-.69-2.14-1.07h0c-.69-.39-1.37-.8-2-1.24l-.1-.06c-.61-.4-1.2-.84-1.77-1.28l-.36-.28c-.53-.43-1.05-.87-1.55-1.34-.14-.12-.27-.26-.41-.39-.42-.4-.83-.82-1.23-1.24l-.5-.55c-.35-.4-.7-.81-1-1.23L40.08,82c-.36-.48-.71-1-1-1.48-.15-.22-.3-.45-.44-.68-.33-.52-.64-1.05-.94-1.6l-.3-.58c-.25-.49-.5-1-.72-1.51-.07-.16-.15-.31-.22-.48-.27-.64-.52-1.3-.75-2l-.16-.46c-.22-.7-.43-1.42-.61-2.14l0-.13H93.21ZM48.67,53.35s0,.09,0,.14a3.38,3.38,0,0,0,.08.34,6.13,6.13,0,0,0,.18.61c.05.13.1.25.16.38l.08.18H47Zm8.83-1.72a3.77,3.77,0,0,1,.11.87,3.5,3.5,0,0,1-5.72,2.71L51.66,55a3.4,3.4,0,0,1-1-2.49,3.23,3.23,0,0,1,.19-1.13,3.5,3.5,0,0,1,6.7.26ZM53,57.86l.28.06a5.14,5.14,0,0,0,.88.08,5.91,5.91,0,0,0,1-.1h0a5.18,5.18,0,0,0,1-.28l.07,0a5.92,5.92,0,0,0,.83-.43l.08,0a5.82,5.82,0,0,0,.72-.57l.09-.08a6.39,6.39,0,0,0,.59-.68l.08-.1a6.06,6.06,0,0,0,.45-.78l.06-.12a5.08,5.08,0,0,0,.31-.85l0-.14a5.51,5.51,0,0,0,.14-.92s0,0,0-.07l6.33,2a12.33,12.33,0,0,1,5.38,3.42l.09.09,2,1.72H66.66a6.26,6.26,0,0,1-5.2-2.78l-.26-.4a1,1,0,0,0-1.39-.27,1,1,0,0,0-.27,1.38l.26.4A8.22,8.22,0,0,0,66.66,62h9.08l4.82,4.14L63,65.47a11,11,0,0,1-8.28-4.28l-2.17-3.42C52.66,57.81,52.81,57.83,53,57.86Z"></path></g></g></svg>`;
+            const encodedSvg = encodeURIComponent(sparrowSvgIcon).replace(/'/g, '%27').replace(/"/g, '%22');
+            faviconLink.href = `data:image/svg+xml,${encodedSvg}`;
+        });
+    </script>
+</body>
+</html>
