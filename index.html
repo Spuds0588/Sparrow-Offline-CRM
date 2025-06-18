@@ -23,7 +23,7 @@
             --sparrow-persian-orange: #d38b5d;
             --sparrow-persian-orange-hover: #e6a079;
             --sparrow-text-primary: #ffffff;
-            --sparrow-text-secondary: #e0f0ff; /* Adjusted for better readability */
+            --sparrow-text-secondary: #e0f0ff; 
             --sparrow-light-bg: #f7f9fa;
             --sparrow-success: #2ebc4f;
             --sparrow-danger: #ff3860;
@@ -37,6 +37,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #0b2d34; /* Dark base for between sections */
+            word-break: break-word; /* Prevents text overflow */
         }
 
         /* Hero Section */
@@ -107,12 +108,17 @@
         #problem .pain-point-title { color: var(--sparrow-danger); font-weight: 600; }
         #problem .desire-point-title { color: var(--sparrow-success); font-weight: 600; }
         #problem .icon { vertical-align: middle; }
-
+        
+        .list-wrapper {
+            display: inline-block;
+            text-align: left;
+        }
+        
         .dashboard-screenshot {
             border-radius: 8px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.4);
             max-width: 100%;
-            height: auto; /* Ensures aspect ratio is maintained */
+            height: auto;
         }
         .image-container {
              text-align: center;
@@ -123,11 +129,8 @@
             height: 100%;
             border-radius: 12px;
         }
-        #process .box h3.title {
+        #process .box h3.title, #process .box p {
             color: var(--sparrow-cerulean);
-        }
-        #process .box p {
-            color: var(--sparrow-cerulean); /* Text color fix */
         }
 
         #whats-included .box {
@@ -143,6 +146,11 @@
             border-left: 5px solid var(--sparrow-success);
             background-color: #f6fef9;
             border-radius: 8px;
+        }
+
+        #support-project .bmac-button img {
+             height: 50px !important;
+             width: auto !important;
         }
 
         .button.is-github {
@@ -165,8 +173,7 @@
         /* Mobile Responsiveness */
         @media screen and (max-width: 768px) {
             .hero.is-medium .hero-body {
-                padding-bottom: 3rem;
-                padding-top: 3rem;
+                padding: 4rem 1.5rem;
             }
             .hero.is-primary .title {
                 font-size: 2.5rem;
@@ -174,12 +181,20 @@
             .hero.is-primary .subtitle {
                 font-size: 1.2rem;
             }
+            .section {
+                padding: 3rem 1.5rem;
+            }
             .section-heading {
                 font-size: 2rem;
                 margin-bottom: 2rem;
             }
-            #problem .columns .column:first-child {
-                margin-bottom: 2rem;
+            .button.is-large {
+                font-size: 1.1rem; /* Slightly smaller font on mobile */
+                white-space: normal; /* Allow button text to wrap */
+                height: auto; /* Allow button height to adjust */
+                line-height: 1.4;
+                padding-top: 0.8em;
+                padding-bottom: 0.8em;
             }
         }
     </style>
@@ -211,22 +226,26 @@
         <div class="container">
             <h2 class="title is-2 section-heading has-text-centered" data-aos="fade-up">Tired of Expensive, Intrusive CRMs?</h2>
             <div class="columns is-centered">
-                <div class="column is-10">
-                    <div class="box p-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="column is-10-tablet is-8-desktop">
+                    <div class="box p-4-mobile p-6-tablet" data-aos="fade-up" data-aos-delay="100">
                         <p class="is-size-5 mb-5 has-text-left">Modern SaaS CRMs are powerful, but they come at a cost—not just in dollars, but in privacy and complexity. Your customer data is your most valuable asset, yet it's often stored on someone else's servers, analyzed by their AI, and held hostage by monthly fees. If you're a freelancer, a small business owner, or just someone who values privacy, you know the struggle.</p>
-                        <div class="columns is-multiline is-vcentered">
-                            <div class="column is-half">
-                                <h4 class="title is-4 pain-point-title">The Pains</h4>
-                                <ul class="ml-4 is-size-5 has-text-left">
+                        
+                        <div class="has-text-centered mb-5">
+                            <h4 class="title is-4 pain-point-title">The Pains</h4>
+                            <div class="list-wrapper">
+                                <ul class="is-size-5">
                                     <li><span class="icon mr-2"><i class="fas fa-wallet"></i></span>Endless monthly subscription fees.</li>
                                     <li><span class="icon mr-2"><i class="fas fa-user-secret"></i></span>Your private data analyzed by third parties.</li>
                                     <li><span class="icon mr-2"><i class="fas fa-lock"></i></span>Vendor lock-in making it hard to leave.</li>
-                                    <li><span class="icon mr-2"><i class="fas fa-wifi-slash"></i></span>Useless without an internet connection.</li>
+                                    <li><span class="icon mr-2"><i class="fas fa-plug-circle-xmark"></i></span>Useless without an internet connection.</li>
                                 </ul>
                             </div>
-                            <div class="column is-half">
-                                <h4 class="title is-4 desire-point-title">Your Desires</h4>
-                                <ul class="ml-4 is-size-5 has-text-left">
+                        </div>
+
+                        <div class="has-text-centered">
+                            <h4 class="title is-4 desire-point-title">Your Desires</h4>
+                             <div class="list-wrapper">
+                                <ul class="is-size-5">
                                     <li><span class="icon mr-2"><i class="fas fa-hand-holding-usd"></i></span>A powerful tool that's completely free.</li>
                                     <li><span class="icon mr-2"><i class="fas fa-file-alt"></i></span>True ownership and control of your data.</li>
                                     <li><span class="icon mr-2"><i class="fas fa-hdd"></i></span>Simple, portable, and easy to back up.</li>
@@ -324,7 +343,7 @@
         <div class="container has-text-centered">
             <h2 class="title is-2 section-heading" data-aos="fade-up">Our Forever-Free & Open-Source Guarantee</h2>
             <div class="columns is-centered" data-aos="fade-up" data-aos-delay="100">
-                <div class="column is-two-thirds">
+                <div class="column is-10-tablet is-8-desktop">
                     <div class="notification guarantee-box p-5">
                         <p class="is-size-5 has-text-dark">Sparrow CRM is and always will be free to use. Our commitment is to provide a powerful, private tool for everyone. As an open-source project, the code is publicly available for you to inspect and verify. You are always in control.</p>
                     </div>
@@ -332,6 +351,22 @@
             </div>
         </div>
     </section>
+
+    <!-- NEW "SUPPORT" SECTION -->
+    <section id="support-project" class="section is-dark">
+        <div class="container has-text-centered">
+            <h2 class="title is-2 section-heading" data-aos="fade-up">Like Sparrow? Support Its Development!</h2>
+            <p class="is-size-5 mb-5 container" style="max-width: 600px;" data-aos="fade-up" data-aos-delay="100">
+                Sparrow is a passion project, built to be free forever. If you find it useful, please consider supporting its continued development and maintenance with a small donation.
+            </p>
+            <div data-aos="fade-up" data-aos-delay="200">
+                <a href="https://www.buymeacoffee.com/burnsdevelopment" target="_blank" rel="noopener noreferrer" class="bmac-button">
+                    <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee">
+                </a>
+            </div>
+        </div>
+    </section>
+
 
     <section id="call-to-action" class="section is-light-themed">
         <div class="container has-text-centered">
@@ -357,7 +392,7 @@
 
     <footer class="footer">
         <div class="content has-text-centered">
-            <p>&copy; 2024 Sparrow CRM. All rights reserved.</p>
+            <p>&copy; 2025 Sparrow CRM. All rights reserved.</p>
             <div class="level is-mobile is-centered">
                 <div class="level-item">
                     <a href="https://github.com/Spuds0588/Sparrow-Offline-CRM/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License (MIT)</a>
