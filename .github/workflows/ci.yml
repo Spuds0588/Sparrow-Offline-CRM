@@ -54,7 +54,11 @@ jobs:
         run: python3 tools/build.py --check
 
       - name: Attach bundle to GitHub Release
+        env:
+          # Only the file for THIS tag (a repo-wide glob would attach every
+          # historical version — including the leaked v1.0.0 — to new releases).
+          RELEASE_FILE: "Sparrow CRM v${GITHUB_REF_NAME#v}.html"
         uses: softprops/action-gh-release@v2
         with:
-          files: "Sparrow CRM v*.html"
+          files: ${{ env.RELEASE_FILE }}
           fail_on_unmatched_files: true
