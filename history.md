@@ -5,6 +5,57 @@ why, in enough detail that the next session doesn't have to re-learn it.
 
 ---
 
+## Session — 2026-09-27 (3) · PRD audit + roadmap (docs only, no code)
+
+**Input.** The original PRD & implementation guide (v1.2, dated 2023-10-26)
+was provided out-of-band at `Sparrow_Offline_CRM/
+PRD_and_Implimentation_guide.txt` (not in the repo). The product has pivoted
+from it in places; this session audited PRD-vs-app and re-sequenced the
+backlog. No code changed.
+
+**Audit result (verified in `src/`, not assumed).** Most of the PRD already
+ships: F-01..F-10 and F-17..F-23 are implemented — including several things
+the guide calls "steps" (smart updates, on-the-fly fields, relationships,
+deep linking, ghost mode, confirmations). The real gaps:
+
+- **F-15** custom activity types: the settings list renders but there is no
+  UI to add/remove types — a visible dead end.
+- **F-12** tasks lack the PRD's `description` and `isImportant` fields.
+- **F-13** the centralized task view has no filter and no bulk edit.
+- **F-11** signature parsing was never built.
+- **F-14** task templating was never built.
+- **F-16** links & documents was never built; `links[]` was actually removed
+  as dead code in v1.1.0 (dead since the relationships rewrite).
+- **F-06** divergence: PRD wants one flat CSV; we ship three per-type CSVs.
+- **F-07** partial: tags render on cards but there is no tag *filter*.
+
+**Accepted data-model divergence (documented, intentional).** The PRD's
+`settings.fields[]` (with numeric `order`) became `fieldDefinitions{}` +
+ordered `sections[]` during the v24.x iterations — strictly more capable
+(grouping, visibility, per-section ordering) and already load-bearing. We
+will not migrate back; tasks will gain the missing PRD fields instead.
+
+**Prioritization (YAGNI × audience).** The audience is freelancers and small
+shops downgrading from expensive CRMs (PRD §2). Ranked by (a) closes a
+currently-visible gap, (b) small diff, (c) daily-use value:
+
+1. **v1.3.0** = F-15 + F-12 + F-13 filter-only + F-07 tag-filter. All four
+   are small, touch existing screens, and remove a dead end (F-15) plus
+   complete the task model (F-12/F-13) that two later features depend on.
+2. **v1.4.x** = F-11 signature parsing (genuinely differentiated, pure
+   client-side regex per the guide) + F-06 flat "export everything" CSV.
+3. **Deferred** = F-14 templating and F-16 links. F-14 is a bulk power
+   feature whose wall small users haven't hit yet and which needs F-12's
+   task model first. F-16 fights the single-file promise: URL fields already
+   cover web links, local paths can't be validated offline. Both stay in
+   the doc with explicit revisit conditions rather than deleted, so the
+   next session knows they were considered, not forgotten.
+
+`todo.md` now carries the full PRD status snapshot, the three-tier roadmap,
+and the divergence notes.
+
+---
+
 ## Session — 2026-09-26 (2) · v1.2.0 (restructure, CI, headed test pass, features)
 
 **Release.** Published the missing GitHub Release for tag `v1.1.0` (the tag
