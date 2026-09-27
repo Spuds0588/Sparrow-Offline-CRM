@@ -5,6 +5,66 @@ why, in enough detail that the next session doesn't have to re-learn it.
 
 ---
 
+## Session — 2026-09-26 (2) · v1.2.0 (restructure, CI, headed test pass, features)
+
+**Release.** Published the missing GitHub Release for tag `v1.1.0` (the tag
+existed from the previous session but no Release object; README/index download
+links pointed at it). Asset: `Sparrow.CRM.v1.1.0.html`.
+
+**No PRD found.** Searched the repo (glob for PRD/roadmap/spec, all markdown)
+— none exists. Worked from `todo.md` backlog instead.
+
+**Restructure.** Repo now builds the product from `src/`:
+`head.html` / `styles.css` / `shell.html` / `data.json` / `utils.js` / `core.js`
+/ `ui.js` / `events.js` / `main.js`. `tools/build.py` bundles them into
+`Sparrow CRM v<APP_VERSION>.html`, replacing the `<style>` block, collapsing
+duplicate favicon links, and refusing (`--check`) to build with user data in
+`data.json`. `tools/extract_src.py` is the one-time migration from the release
+file (kept for reference; do NOT re-run it against a rebuilt file — the
+release file is an output now). Two build gotchas hit and fixed:
+- The favicon `<link>` sat between `</style>` and `<body>` — head capture now
+  spans everything before `<body>`.
+- Anchoring the JS split on `APP_VERSION` dropped the IIFE opener
+  `(function() { "use strict";` just above it, leaving `main.js`'s closer
+  unbalanced. Anchor on the IIFE line instead.
+- The released v1.1.0 file carried **4 favicon links concatenated on one
+  line** (a `grep -c` line-count had masked this for two sessions).
+  `build.py` now collapses runs of favicon links to the first.
+
+**CI.** `.github/workflows/ci.yml`: on push/PR builds with `--check`,
+`node --check`s the bundled JS, uploads the artifact; on `v*` tags it attaches
+the bundle to the GitHub Release automatically.
+
+**Headed test pass (real browser, screenshots at each step).** Found and
+fixed 4 issues:
+1. Notes placeholder showed literal `<i>No notes yet...</i>` — the empty-state
+   markup itself was being escaped. Only user content is escaped now.
+2. **Data-loss risk:** closing *any* modal cleared the unsaved-changes flag,
+   so committing a task/activity then closing the modal un-marked real
+   unsaved data (reminder vanished, footer save disabled). `hideModal` no
+   longer touches the flag; comment documents why.
+3. No responsive CSS at all — modal 2-column grid + action buttons overflowed
+   at 390px with horizontal scroll. Added a 768px breakpoint (stacked modal,
+   wrapped buttons, single-column grid, single-column settings rows).
+4. The confirm modal's runtime text (`Are you sure you want to permanently
+del   ete Amelia?` — a real contact name) leaked into saved files;
+   `generateHtmlToSave` resets it to pristine defaults now.
+
+**Features (from todo.md backlog).**
+- Contact-grid sort: header dropdown (import order / A→Z / Z→A / recently
+  added). Mode lives in transient `AppState.ui.sortMode`, never saved.
+- Import type detection: `Core.detectFieldType` probes up to 20 non-empty
+  values per new column; email/phone/url/currency/number/date/boolean only
+  when every sampled value matches. Verified: detected email, phone,
+  currency, url, boolean on a mixed CSV.
+- Search+sort now share one header row (flex wrap).
+
+**Release.** v1.2.0: `APP_VERSION` bump rebuilds to `Sparrow CRM v1.2.0.html`,
+snapshot copied to `Versions/sparrow_offline_crm(v33).html`, README/index
+links updated, tag `v1.2.0` pushed (CI attaches the bundle).
+
+---
+
 ## Session — 2026-09-26 · v1.1.0 (YAGNI refactor + privacy fix)
 
 **Context.** Repo is the public home of a single-file offline CRM. The

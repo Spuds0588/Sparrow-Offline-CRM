@@ -31,10 +31,14 @@ download) is detail around that one idea.
 
 | Path | What it is |
 | --- | --- |
-| `Sparrow CRM v1.1.0.html` | **The product.** Pristine template users download. |
+| `src/` | **Source of truth**: `head.html`, `styles.css`, `shell.html`, `data.json`, `utils.js`, `core.js`, `ui.js`, `events.js`, `main.js`. |
+| `tools/build.py` | Bundles `src/` → `Sparrow CRM v<version>.html`. `--check` refuses user data in `data.json`. |
+| `tools/extract_src.py` | One-time migration script (historical). Do **not** re-run against a built file. |
+| `Sparrow CRM v*.html` | **Build output.** Never edit directly — edit `src/` and rebuild. |
 | `index.html` | Landing page (GitHub Pages). |
 | `Versions/*.html` | Historical snapshots. Never edit; copy new ones in. |
 | `Assets/` | Logo + screenshots. |
+| `.github/workflows/ci.yml` | Build + syntax check on push; attaches bundle to `v*` tag releases. |
 | `agents.md` / `todo.md` / `history.md` | Cross-session tracking. Update every session. |
 
 ## The template/data rule (most important gotcha)
@@ -91,18 +95,26 @@ whenever a field is created, moved, or deleted.
 
 ## How to verify changes (no test suite exists)
 
-1. Open the product file in a browser (or the Preview tab); watch the
-   console — it must be clean on load.
-2. Import a small CSV with quoted commas/newlines; check grid + detail view.
-3. Edit inline, toggle a task, add a relationship; confirm the unsaved-changes
+1. `python3 tools/build.py --check` then `node --check` the bundled script.
+2. Open the built file in a browser (or the Preview tab) in a **fresh tab** —
+   the unsaved-changes guard blocks same-URL reloads; a tab with pending
+   changes keeps serving the old document.
+3. Watch the console — it must be clean on load.
+4. Import a small CSV with quoted commas/newlines; check grid + detail view.
+5. Edit inline, toggle a task, add a relationship; confirm the unsaved-changes
    reminder appears.
-4. Save, then open the **saved** file: data loads, static markup is clean
-   (no contact names), console clean.
-5. Reopen after hard refresh with ghost mode on and off.
+6. Save, then open the **saved** file: data loads, static markup is clean
+   (no contact names, no confirm-modal text), console clean.
+7. Check a 390px viewport (modal, settings) — responsive rules live at the
+   bottom of `src/styles.css`.
 
 ## Release process
 
-1. Do the work; bump `APP_VERSION` and copy the file into `Versions/`.
-2. Update `todo.md` (done items) and `history.md` (session entry).
-3. Update download links in `index.html` + `README.md`.
-4. Commit on `main`, push, tag `vX.Y.Z` and push the tag.
+1. Do the work in `src/`; bump `APP_VERSION` in `src/utils.js`.
+2. `python3 tools/build.py --check` — output is `Sparrow CRM v<version>.html`.
+3. Copy it into `Versions/sparrow_offline_crm(v<n+1>).html`.
+4. Update `todo.md` (done items) and `history.md` (session entry).
+5. Update download links in `index.html` + `README.md`.
+6. Commit on `main`, push, tag `vX.Y.Z` and push the tag — CI builds and
+   attaches the bundle to the GitHub Release automatically (or run
+   `gh release create vX.Y.Z "Sparrow CRM vX.Y.Z.html"` if CI is not set up).

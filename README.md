@@ -1,6 +1,6 @@
 # Sparrow CRM 🐦
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue)]([https://github.com/your-username/your-repo/releases/latest](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases))
+[![Version](https://img.shields.io/badge/version-1.2.0-blue)]([https://github.com/your-username/your-repo/releases/latest](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases))
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![Tech](https://img.shields.io/badge/tech-Vanilla_JS-yellow)]([https://github.com/your-username/your-repo](https://github.com/Spuds0588/Sparrow-Offline-CRM))
 
@@ -12,9 +12,9 @@ Our vision is to empower users with full control over their own data, offering a
 
 ## ➡️ Download the Latest Version
 
-You can download the ready-to-use `Sparrow CRM v1.1.0.html` file directly from our latest release.
+You can download the ready-to-use `Sparrow CRM v1.2.0.html` file directly from our latest release.
 
-**[Download Sparrow CRM v1.1.0 Here](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/v1.1.0/Sparrow.CRM.v1.1.0.html)**
+**[Download Sparrow CRM v1.2.0 Here](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/v1.2.0/Sparrow.CRM.v1.2.0.html)**
 
 ---
 
@@ -26,7 +26,7 @@ Sparrow CRM is built on three key principles:
 *   ✅ **Completely Portable:** The entire CRM (application + your data) is a single file. You can save it on your computer, a USB drive, or in your private cloud storage. Backing up is as simple as copying a file.
 *   ✅ **No Cost, Ever:** This is a free, open-source tool. There are no subscriptions, no hidden fees, and no "pro" versions.
 
-## Key Features (Version 1.1.0)
+## Key Features (Version 1.2.0)
 
 This version includes all the core functionality you need to manage your contacts effectively, plus a cleaner, privacy-hardened engine:
 
@@ -53,11 +53,16 @@ This version includes all the core functionality you need to manage your contact
 *   **Escaped Rendering (new in 1.1.0):** All contact data is safely escaped before display, so a stray `<` or quote in your CSV can never break the page.
 *   **Smarter CSV Import (new in 1.1.0):** Fully RFC-4180 compliant parsing — quoted fields with commas, newlines, and escaped quotes now import correctly.
 
+#### New in 1.2.0
+*   **Contact Sorting:** Sort the gallery by name (A→Z / Z→A) or by recently added, right from the header.
+*   **Field Type Detection:** CSV imports now auto-detect email, phone, URL, number, currency, and boolean fields instead of defaulting everything to text.
+*   **Mobile-Friendly Layout:** The app finally adapts to phones — the contact modal, settings page, and header all collapse gracefully on small screens.
+
 ## Getting Started (for Users)
 
 Using Sparrow CRM is as easy as 1-2-3:
 
-1.  **Download:** [Download the `sparrow-crm.html` file](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/v1.1.0/Sparrow.CRM.v1.1.0.html) from the link above.
+1.  **Download:** [Download the `sparrow-crm.html` file](https://github.com/Spuds0588/Sparrow-Offline-CRM/releases/download/v1.2.0/Sparrow.CRM.v1.2.0.html) from the link above.
 2.  **Open:** Open the downloaded file in a modern web browser like Chrome, Firefox, Edge, or Safari.
 3.  **Import:** Drag and drop your first contacts CSV file onto the welcome screen, or click the button to select it.
 

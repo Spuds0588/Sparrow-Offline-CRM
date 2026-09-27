@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build single-file app
+        run: python3 tools/build.py --check
+
+      - name: Syntax-check bundled JavaScript
+        run: |
+          python3 - <<'EOF'
+          import re
+          html = open(next(p for p in __import__('pathlib').Path('.').glob('Sparrow CRM v*.html')), encoding='utf-8').read()
+          js = re.findall(r'<script>(.*?)</script>', html, re.S)[0]
+          open('/tmp/bundle.js', 'w').write(js)
+          EOF
+          node --check /tmp/bundle.js
+
+      - name: Upload built file
+        uses: actions/upload-artifact@v4
+        with:
+          name: sparrow-crm-bundle
+          path: "Sparrow CRM v*.html"
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build single-file app
+        run: python3 tools/build.py --check
+
+      - name: Attach bundle to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "Sparrow CRM v*.html"
+          fail_on_unmatched_files: true

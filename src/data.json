@@ -1,0 +1,17 @@
+{
+  "contacts": [],
+  "tasks": [],
+  "activities": [],
+  "relationships": [],
+  "settings": {
+    "fieldDefinitions": {},
+    "sections": [],
+    "customActivityTypes": [
+      "Phone Call",
+      "SMS",
+      "Email",
+      "Meeting"
+    ],
+    "ghostMode": false
+  }
+}
